@@ -50,6 +50,12 @@ function PreBeginPlay()
 	ReviveMe = sReviveMe;
 	ReviveCost = iReviveCost;
 	DefaultTraderTime = iDefaultTraderTime;
+	KFGT = KFGameType(level.game);
+
+	if(KFGT == none)
+	{
+		MutLog("-----|| KFGameType not found! ||-----");
+	}
 
 	// Fill in the Dynamic Array of Special Players
 	for(i=0; i<aSpecialPlayers.Length; i=i++)
@@ -261,7 +267,7 @@ function bool FuckingReviveMe(PlayerController TmpPC)
 		// Check if they have enough dosh
 		if (dosh < ReviveCost)
 		{
-			DeadMSG = "%wYeah... you're fucking %rdead %wAND %rbroke! You need %t" $ReviveCost$ " %wDo$h for a revive";
+			DeadMSG = "%wYeah... you're fucking %rdead %wAND %rbroke! %wYou need %t" $ReviveCost$ " %wDo$h for a revive";
 			SetColor(DeadMSG);
 			TmpPC.ClientMessage(DeadMSG);
 		}
