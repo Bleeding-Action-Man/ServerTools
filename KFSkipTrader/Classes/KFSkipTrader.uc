@@ -97,7 +97,7 @@ function ServerMessage(string Msg)
 function Mutate(string command, PlayerController Sender)
 {
 	local string PN, PID;
-	local string WelcomeMSG, DefaultTraderTimeMSG, SkipTraderMSG, CurrentTraderTimeMSG, CustomTraderTimeMSG;
+	local string WelcomeMSG, DefaultTraderTimeMSG, SkipTraderMSG, CurrentTraderTimeMSG, CustomTraderTimeMSG, MSG1, MSG2, MSG3;
 	local array<string> SplitCMD;
 	local int num, i;
 
@@ -134,11 +134,11 @@ function Mutate(string command, PlayerController Sender)
 		}
 		if(FindSteamID(i, PID))
 		{
-			ServerMessage("-----|| " $PN$ " is %gmodifying %wthe Trader! ||-----");
+			ServerMessage("%w-----|| " $PN$ " is %gmodifying %wthe Trader! ||-----");
 		}
 		else
 		{
-			ServerMessage("-----|| %rWarning %wto:" $PN$ "! You %rcannot %wmanipulate the trader! ||-----");
+			ServerMessage("%w-----|| %rWarning %wto: %b" $PN$ "%w! You %rcannot %wmanipulate the trader! ||-----");
 			return;
 		}
 	}
@@ -154,9 +154,11 @@ function Mutate(string command, PlayerController Sender)
 	if (command ~= SkipTraderCmd) {
 		if(KFGameType(Level.Game).bTradingDoorsOpen) {
 			KFGameType(Level.Game).WaveCountDown = 6;
-			ServerMessage("Trader Time Skipped by: " $PN);
+			ServerMessage("Trader Time Skipped by: %b" $PN);
 		} else {
-			Sender.ClientMessage(PN$ ", " $SkipTraderCmd$ " is only functional during trader time.");
+			MSG1 = "%b" $PN$ "%w, %t" $SkipTraderCmd$ " %wis only functional during trader time.";
+			SetColor(MSG1);
+			Sender.ClientMessage(MSG1);
 		}
 	}
 
@@ -170,9 +172,11 @@ function Mutate(string command, PlayerController Sender)
 			if(num > 255)
 				num = 120;
 			KFGameType(Level.Game).WaveCountDown = num;
-			ServerMessage(PN$ " changed the current trader time to " $string(num)$ " seconds.");
+			ServerMessage("%b" $PN$ " %wchanged the current trader time to %t" $string(num)$ " %wseconds.");
 		} else {
-     		Sender.ClientMessage(PN$ ", " $CurrentTraderTimeCmd$ " is only functional during trader time.");
+			MSG2 = "%b" $PN$ "%w, %t" $CurrentTraderTimeCmd$ " %wis only functional during trader time.";
+			SetColor(MSG2);
+     		Sender.ClientMessage(MSG2);
 		}
 	}
 
@@ -180,11 +184,13 @@ function Mutate(string command, PlayerController Sender)
 	// Limited between 6 and 255
 	if (Left(command, Len(CustomTraderTimeCmd)) ~= CustomTraderTimeCmd) {
 		if(int(SplitCMD[1]) <= 6 || int(SplitCMD[1]) > 255) {
-			Sender.ClientMessage(PN$ ", time between waves has to be between 6 and 255");
+			MSG3 = "%b" $PN$ "%w, time between waves has to be between %t6 %wand %t255";
+			SetColor(MSG3);
+			Sender.ClientMessage(MSG3);
 			return;
 		}
 		KFGameType(Level.Game).TimeBetweenWaves = int(SplitCMD[1]);
-		ServerMessage(PN$ " changed the trader time between waves to " $string(int(SplitCMD[1]))$ " seconds.");
+		ServerMessage("%b" $PN$ " %wchanged the trader time between waves to %t" $string(int(SplitCMD[1]))$ " %wseconds.");
 
 	}
 	if (NextMutator != None )
