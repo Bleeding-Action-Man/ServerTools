@@ -9,13 +9,13 @@ class KFServerTools extends Mutator Config(KFServerTools);
 
 // Config Vars
 var() config bool bDebug, bAdminAndSelectPlayers;
-var() config string sSkipTraderCmd, sCurrentTraderTimeCmd, sCustomTraderTimeCmd, sReviveMe, sReviveThem;
+var() config string sSkipTraderCmd, sCurrentTraderTimeCmd, sCustomTraderTimeCmd, sReviveMeCmd, sReviveThemCmd;
 var() config int iDefaultTraderTime, iReviveCost;
 
 // Tmp Vars
 var bool Debug, AdminAndSelectPlayers;
 var int DefaultTraderTime, ReviveCost;
-var string SkipTraderCmd, CurrentTraderTimeCmd, CustomTraderTimeCmd, ReviveMe, ReviveThem;
+var string SkipTraderCmd, CurrentTraderTimeCmd, CustomTraderTimeCmd, ReviveMeCmd, ReviveThemCmd;
 var KFGameType KFGT;
 
 // Players to be marked as either VIP or Donator
@@ -47,8 +47,8 @@ function PreBeginPlay()
 	SkipTraderCmd = sSkipTraderCmd;
 	CurrentTraderTimeCmd = sCurrentTraderTimeCmd;
 	CustomTraderTimeCmd = sCustomTraderTimeCmd;
-	ReviveMe = sReviveMe;
-	ReviveThem = sReviveThem;
+	ReviveMeCmd = sReviveMeCmd;
+	ReviveThemCmd = sReviveThemCmd;
 	ReviveCost = iReviveCost;
 	DefaultTraderTime = iDefaultTraderTime;
 	KFGT = KFGameType(level.game);
@@ -71,6 +71,9 @@ function PreBeginPlay()
     	MutLog("-----|| DEBUG - SkipTraderCmd: " $SkipTraderCmd$ " ||-----");
     	MutLog("-----|| DEBUG - CurrentTraderTimeCmd: " $CurrentTraderTimeCmd$ " ||-----");
     	MutLog("-----|| DEBUG - CustomTraderTimeCmd: " $CustomTraderTimeCmd$ " ||-----");
+    	MutLog("-----|| DEBUG - ReviveMeCmd: " $ReviveMeCmd$ " ||-----");
+    	MutLog("-----|| DEBUG - ReviveThemCmd: " $ReviveThemCmd$ " ||-----");
+    	MutLog("-----|| DEBUG - ReviveCost: " $ReviveCost$ " ||-----");
     	MutLog("-----|| DEBUG - # Of Special Players Players: " $SpecialPlayers.Length$ " ||-----");
 	}
 	SetTimer(1, false);
@@ -111,7 +114,7 @@ function Mutate(string command, PlayerController Sender)
 	local string PN, PID;
 	local string WelcomeMSG, DefaultTraderTimeMSG, SkipTraderMSG, CurrentTraderTimeMSG, CustomTraderTimeMSG,
 				MSG1, MSG2, MSG3,
-				ReviveMSG, ReviveThemMSG;
+				ReviveMSG, ReviveThemCmdMSG, AdminsAndSPsMSG;
 	local array<string> SplitCMD;
 	local int num, i;
 
@@ -123,58 +126,62 @@ function Mutate(string command, PlayerController Sender)
 	if(command ~= "st help" || command ~= "skiptrader help")
 	{
 		WelcomeMSG = "%yYou are viewing Server-Tools Mut Help, below are the commands you can use!";
+		AdminsAndSPsMSG = "%oOnly Admins & Selected players can manipulate trader time!";
 		DefaultTraderTimeMSG = "%bCurrent default trader time: %w" $DefaultTraderTime;
-		SkipTraderMSG = "%g" $SkipTraderCmd$ ": Skip the current trader time. %wUsage: %tmutate " $SkipTraderCmd;
-		CurrentTraderTimeMSG = "%g" $CurrentTraderTimeCmd$ ": Change the current trade time of this wave. %wUsage: %tmutate " $CurrentTraderTimeCmd$ " <6-255>";
-		CustomTraderTimeMSG = "%g" $CustomTraderTimeCmd$ ": Change the default trader time. %wUsage: %tmutate " $CustomTraderTimeCmd$ " <6-255>";
-		ReviveMSG = "%g" $ReviveMe$ ": Revive yourself if you have at least " $ReviveCost$ " Dosh. %wUsage: %tmutate " $ReviveMe;
-		ReviveThemMSG = "%g" $ReviveThem$ ": Revive other players, if you are feeling kind enough ;p " $ReviveCost$ " Dosh. %wUsage: %tmutate " $ReviveThem$ " all %w| %tmutate " $ReviveThem$ " <PlayerName>";
+		SkipTraderMSG = "%w" $SkipTraderCmd$ ": %gSkip the current trader time. %wUsage: %tmutate " $SkipTraderCmd;
+		CurrentTraderTimeMSG = "%w" $CurrentTraderTimeCmd$ ": %gChange the current trade time of this wave. %wUsage: %tmutate " $CurrentTraderTimeCmd$ " <6-255>";
+		CustomTraderTimeMSG = "%w" $CustomTraderTimeCmd$ ": %gChange the default trader time. %wUsage: %tmutate " $CustomTraderTimeCmd$ " <6-255>";
+		ReviveMSG = "%w" $ReviveMeCmd$ ": %gRevive yourself if you have at least %v" $ReviveCost$ " %gDosh. %wUsage: %tmutate " $ReviveMeCmd;
+		ReviveThemCmdMSG = "%w" $ReviveThemCmd$ ": %gRevive other players, if you are feeling kind enough ;p costs %v" $ReviveCost$ " %gDosh. %wUsage: %tmutate " $ReviveThemCmd$ " all %w| %tmutate " $ReviveThemCmd$ " <PlayerName>";
 		SetColor(WelcomeMSG);
 		SetColor(DefaultTraderTimeMSG);
 		SetColor(SkipTraderMSG);
 		SetColor(CurrentTraderTimeMSG);
 		SetColor(CustomTraderTimeMSG);
 		SetColor(ReviveMSG);
-		SetColor(ReviveThemMSG);
+		SetColor(ReviveThemCmdMSG);
 		Sender.ClientMessage(WelcomeMSG);
+		if(AdminAndSelectPlayers)
+		{
+			SetColor(AdminsAndSPsMSG);
+			Sender.ClientMessage(AdminsAndSPsMSG);
+		}
 		Sender.ClientMessage(DefaultTraderTimeMSG);
 		Sender.ClientMessage(SkipTraderMSG);
 		Sender.ClientMessage(CurrentTraderTimeMSG);
 		Sender.ClientMessage(CustomTraderTimeMSG);
 		Sender.ClientMessage(ReviveMSG);
-		Sender.ClientMessage(ReviveThemMSG);
+		Sender.ClientMessage(ReviveThemCmdMSG);
 		return;
 	}
 
-	if(command ~= ReviveMe)
+	if(command ~= ReviveMeCmd)
 	{
-		if(FuckingReviveMe(Sender))
+		if(FuckingReviveMeCmd(Sender))
 		{
 			ServerMessage("%w-----|| %b" $PN$ " %whas revived himself! ||-----");
 		}
 		return;
 	}
 
-	if(Left(command, Len(ReviveThem)) ~= ReviveThem)
+	if(Left(command, Len(ReviveThemCmd)) ~= ReviveThemCmd)
 	{
-		FuckingReviveThem(Sender, SplitCMD[1]);
 		ServerMessage("%w-----|| %b" $PN$ " %wis attempting to revive someone! ||-----");
+		FuckingReviveThemCmd(Sender, SplitCMD[1]);
 		return;
 	}
 
 	if (AdminAndSelectPlayers)
 	{
-		if(Debug)
-		{
-			MutLog("-----|| DEBUG - Mutate available for Admins & Selected Players only ||-----");
-		}
 		if(FindSteamID(i, PID))
 		{
-			ServerMessage("%w-----|| %b" $PN$ " %wis %gmodifying %wthe Trader! ||-----");
+			if (command ~= SkipTraderCmd || Left(command, Len(CurrentTraderTimeCmd)) ~= CurrentTraderTimeCmd || Left(command, Len(CustomTraderTimeCmd)) ~= CustomTraderTimeCmd)
+				ServerMessage("%w-----|| %b" $PN$ " %wis %gmodifying %wthe Trader! ||-----");
 		}
 		else
 		{
-			ServerMessage("%w-----|| %rWarning %wto: %b" $PN$ "%w! You %rcannot %wmanipulate the trader! Only Special Players have permission. ||-----");
+			if (command ~= SkipTraderCmd || Left(command, Len(CurrentTraderTimeCmd)) ~= CurrentTraderTimeCmd || Left(command, Len(CustomTraderTimeCmd)) ~= CustomTraderTimeCmd)
+				ServerMessage("%w-----|| %rWarning %wto: %b" $PN$ "%w! You %rcannot %wmanipulate the trader! Only Special Players have permission. ||-----");
 			return;
 		}
 	}
@@ -234,7 +241,7 @@ function Mutate(string command, PlayerController Sender)
 }
 
 // Allow players to revive themselves if they have enough do$h!
-function bool FuckingReviveMe(PlayerController TmpPC)
+function bool FuckingReviveMeCmd(PlayerController TmpPC)
 {
 	local int dosh, hp;
 	local string PendingMSG, EndedMSG, InProgress, AliveMSG, DeadMSG, DoshMSG;
@@ -296,7 +303,7 @@ function bool FuckingReviveMe(PlayerController TmpPC)
 }
 
 // Allow players to revive other players, and the dosh will be deducted from their own
-function bool FuckingReviveThem(PlayerController TmpPC, string PlayerToReviveNAMEMATCH)
+function bool FuckingReviveThemCmd(PlayerController TmpPC, string PlayerToReviveNAMEMATCH)
 {
 	local int dosh, hp, isPlayerFound;
 	local string PendingMSG, EndedMSG, InProgress, AliveMSG, NotFoundMSG, PoorMSG, DoshMSG, PlayerToReviveNAME;
@@ -369,7 +376,7 @@ function bool FuckingReviveThem(PlayerController TmpPC, string PlayerToReviveNAM
 					// If player being revived is already alive
 					if (hp > 0)
 					{
-						AliveMSG = "%w" $PlayerToReviveNAME$ "%wis already alive!";
+						AliveMSG = "%t" $PlayerToReviveNAME$ " %wis already alive!";
 						SetColor(AliveMSG);
 						TmpPC.ClientMessage(AliveMSG);
 						return false;
@@ -395,7 +402,7 @@ function bool FuckingReviveThem(PlayerController TmpPC, string PlayerToReviveNAM
 				}
 				else
 				{
-					NotFoundMSG = "%b" $PlayerToReviveNAMEMATCH$ " is not related to any of the players! Try again with a more accurate name.";
+					NotFoundMSG = "%t" $PlayerToReviveNAMEMATCH$ " %wis not related to any of the players! Try again with a more accurate name.";
 					SetColor(NotFoundMSG);
 					TmpPC.ClientMessage(NotFoundMSG);
 					return false;
@@ -511,7 +518,7 @@ defaultproperties
 {
 	// Mandatory Vars
 	GroupName = "KF-ServerTools"
-    FriendlyName = "Server Tools - v1.2"
+    FriendlyName = "Server Tools - v1.3"
     Description = "Collection of cool features to empower your server; Made by Vel-San;"
 
 	// Mut Vars
@@ -520,8 +527,8 @@ defaultproperties
     sSkipTraderCmd = "skip"
     sCurrentTraderTimeCmd = "tt"
     sCustomTraderTimeCmd = "st"
-	sReviveMe = "revme"
-	sReviveThem = "rev"
+	sReviveMeCmd = "revme"
+	sReviveThemCmd = "rev"
 	iDefaultTraderTime = 60
 	iReviveCost = 250
 
