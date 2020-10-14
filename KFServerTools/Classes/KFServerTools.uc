@@ -9,13 +9,13 @@ class KFServerTools extends Mutator Config(KFServerTools);
 
 // Config Vars
 var() config bool bDebug, bAdminAndSelectPlayers;
-var() config string sSkipTraderCmd, sCurrentTraderTimeCmd, sCustomTraderTimeCmd, sReviveMe;
+var() config string sSkipTraderCmd, sCurrentTraderTimeCmd, sCustomTraderTimeCmd, sReviveMe, sReviveThem;
 var() config int iDefaultTraderTime, iReviveCost;
 
 // Tmp Vars
 var bool Debug, AdminAndSelectPlayers;
 var int DefaultTraderTime, ReviveCost;
-var string SkipTraderCmd, CurrentTraderTimeCmd, CustomTraderTimeCmd, ReviveMe;
+var string SkipTraderCmd, CurrentTraderTimeCmd, CustomTraderTimeCmd, ReviveMe, ReviveThem;
 var KFGameType KFGT;
 
 // Players to be marked as either VIP or Donator
@@ -48,6 +48,7 @@ function PreBeginPlay()
 	CurrentTraderTimeCmd = sCurrentTraderTimeCmd;
 	CustomTraderTimeCmd = sCustomTraderTimeCmd;
 	ReviveMe = sReviveMe;
+	ReviveThem = sReviveThem;
 	ReviveCost = iReviveCost;
 	DefaultTraderTime = iDefaultTraderTime;
 	KFGT = KFGameType(level.game);
@@ -151,6 +152,13 @@ function Mutate(string command, PlayerController Sender)
 		return;
 	}
 
+	if(Left(command, Len(ReviveThem)) ~= ReviveThem)
+	{
+		FuckingReviveThem(Sender, SplitCMD[1]))
+		ServerMessage("%w-----|| %b" $PN$ " %wis attempting to revive someone! ||-----");
+		return;
+	}
+
 	if (AdminAndSelectPlayers)
 	{
 		if(Debug)
@@ -222,11 +230,11 @@ function Mutate(string command, PlayerController Sender)
 		NextMutator.Mutate(command, Sender);
 }
 
-// Allow players to revive themselves if they have enough do$h! How cool is that?
+// Allow players to revive themselves if they have enough do$h!
 function bool FuckingReviveMe(PlayerController TmpPC)
 {
 	local int dosh, hp;
-	local string PendingMSG, EndedMSG, AliveMSG, DeadMSG, DoshMSG;
+	local string PendingMSG, EndedMSG, InProgress, AliveMSG, DeadMSG, DoshMSG;
 
 	if(KFGT.IsInState('PendingMatch'))
 	{
@@ -244,8 +252,11 @@ function bool FuckingReviveMe(PlayerController TmpPC)
 		return false;
 	}
 
-	if(TmpPC == none)
+	if(!KFGameType(Level.Game).bWaveInProgress)
 	{
+		InProgress = "%wAll players are already alive in Trader Time";
+		SetColor(InProgress);
+		TmpPC.ClientMessage(InProgress);
 		return false;
 	}
 
@@ -262,34 +273,170 @@ function bool FuckingReviveMe(PlayerController TmpPC)
 	}
 
 	// If player is dead
+	// Check if they have enough dosh
+	if (dosh < ReviveCost)
+	{
+		DeadMSG = "%wYeah... you're fucking %rdead %wAND %rbroke! %wYou need %t" $ReviveCost$ " %wDo$h for a revive";
+		SetColor(DeadMSG);
+		TmpPC.ClientMessage(DeadMSG);
+		return false;
+	}
+	else
+	{
+		SelfRespawnProcess(TmpPC)
+		dosh = TmpPC.PlayerReplicationInfo.Score;
+		DoshMSG = "%wFuck Yeah! You've been given another chance for life. Your total %g$$$ %wis now: %g" $dosh;
+		SetColor(DoshMSG);
+		TmpPC.ClientMessage(DoshMSG);
+		return true;
+	}
+}
+
+// Allow players to revive other players, and the dosh will be deducted from their own
+function bool FuckingReviveThem(PlayerController TmpPC, string PlayerToReviveNAMEMATCH)
+{
+	local int dosh, hp, isPlayerFound;
+	local string PendingMSG, EndedMSG, InProgress, AliveMSG, NotFoundMSG, PoorMSG, DoshMSG, PlayerToReviveNAME;
+	local Controller c;
+
+	// Dosh of the player attempting to revive another player
+	dosh = TmpPC.PlayerReplicationInfo.Score;
+
+	if(KFGT.IsInState('PendingMatch'))
+	{
+		PendingMSG = "%wThe game hasn't started yet!";
+		SetColor(PendingMSG);
+		TmpPC.ClientMessage(PendingMSG);
+		return false;
+	}
+
+	if(KFGT.IsInState('GameEnded'))
+	{
+		EndedMSG = "%wThe game has ended, you cannot revive!";
+		SetColor(EndedMSG);
+		TmpPC.ClientMessage(EndedMSG);
+		return false;
+	}
+
+	if(!KFGameType(Level.Game).bWaveInProgress)
+	{
+		InProgress = "%wAll players are already alive in Trader Time";
+		SetColor(InProgress);
+		TmpPC.ClientMessage(InProgress);
+		return false;
+	}
+
+	for( C = Level.ControllerList; C != None; C = C.nextController )
+	{
+		if( C.IsA('PlayerController') )
+		{
+			hp = C.Pawn.Health;
+			PlayerToReviveNAME = C.PlayerReplicationInfo.PlayerName;
+
+			if (PlayerToReviveNAMEMATCH ~= "all")
+			{
+				OthersRespawnProcess(PlayerController(C));
+			}
+			else
+			{
+				isPlayerFound = InStr( Caps(PlayerToReviveNAME), Caps(PlayerToReviveNAMEMATCH));
+				if (isPlayerFound >=0)
+				{
+					// If player being revived is already alive
+					if (hp > 0)
+					{
+						AliveMSG = "%w" $PlayerToReviveNAME$ "%wis already alive!";
+						SetColor(AliveMSG);
+						TmpPC.ClientMessage(AliveMSG);
+						return false;
+					}
+
+					// Check if they have enough dosh
+					if (dosh < ReviveCost)
+					{
+						PoorMSG = "%wYou do not have enough dosh! You need %t" $ReviveCost$ " %wDo$h for a revive";
+						SetColor(PoorMSG);
+						TmpPC.ClientMessage(PoorMSG);
+						return false;
+					}
+
+					// If all above conditions are passed, revive this player!
+					// And take dosh from the charitable reviver :D
+					dosh = int(TmpPC.PlayerReplicationInfo.Score) - ReviveCost;
+					DoshMSG = "%wFuck Yeah! You've given %b" $PlayerToReviveNAME$ " %wanother chance for life. Your total %g$$$ %wis now: %g" $dosh;
+					SetColor(DoshMSG);
+					TmpPC.ClientMessage(DoshMSG);
+					OthersRespawnProcess(PlayerController(C));
+					return true;
+				}
+				else
+				{
+					NotFoundMSG = "%b" $PlayerToReviveNAMEMATCH$ " is not related to any of the players! Try again with a more accurate name.";
+					SetColor(NotFoundMSG);
+					TmpPC.ClientMessage(NotFoundMSG);
+					return false;
+				}
+			}
+		}
+	}
+
+	// If player is dead
 	if ( !TmpPC.PlayerReplicationInfo.bOnlySpectator )
 	{
-		// Check if they have enough dosh
-		if (dosh < ReviveCost)
-		{
-			DeadMSG = "%wYeah... you're fucking %rdead %wAND %rbroke! %wYou need %t" $ReviveCost$ " %wDo$h for a revive";
-			SetColor(DeadMSG);
-			TmpPC.ClientMessage(DeadMSG);
-		}
 		else
 		{
-			TmpPC.PlayerReplicationInfo.Score = int(TmpPC.PlayerReplicationInfo.Score) - ReviveCost;
+			RespawnProcess(TmpPC)
 			dosh = TmpPC.PlayerReplicationInfo.Score;
-			if( TmpPC != none )
-            	{
-            	    TmpPC.GotoState('PlayerWaiting');
-            	    TmpPC.SetViewTarget(TmpPC);
-            	    TmpPC.ClientSetBehindView(false);
-            	    TmpPC.bBehindView = False;
-            	    TmpPC.ClientSetViewTarget(TmpPC.Pawn);
-            	}
-
-            TmpPC.ServerReStartPlayer();
 			DoshMSG = "%wFuck Yeah! You've been given another chance for life. Your total %g$$$ %wis now: %g" $dosh;
 			SetColor(DoshMSG);
 			TmpPC.ClientMessage(DoshMSG);
 			return true;
 		}
+	}
+}
+
+// Process of a player respawning themselves
+// Combination of AdminMut, Admin.uc & KFGameType code contributions
+function SelfRespawnProcess(PlayerController TmpPC)
+{
+	if (TmpPC.PlayerReplicationInfo != None && !TmpPC.PlayerReplicationInfo.bOnlySpectator && TmpPC.PlayerReplicationInfo.bOutOfLives)
+	{
+		Level.Game.Disable('Timer');
+		TmpPC.PlayerReplicationInfo.bOutOfLives = false;
+		TmpPC.PlayerReplicationInfo.NumLives = 0;
+		TmpPC.PlayerReplicationInfo.Score =  int(TmpPC.PlayerReplicationInfo.Score) - ReviveCost;
+		TmpPC.GotoState('PlayerWaiting');
+		TmpPC.SetViewTarget(TmpPC);
+		TmpPC.ClientSetBehindView(false);
+		TmpPC.bBehindView = False;
+		TmpPC.ClientSetViewTarget(TmpPC.Pawn);
+		KFGameType(Level.Game).bWaveInProgress = false;
+		TmpPC.ServerReStartPlayer();
+		KFGameType(Level.Game).bWaveInProgress = true;
+		Level.Game.Enable('Timer');
+	}
+}
+
+// Process of a player other players
+// Combination of AdminMut, Admin.uc & KFGameType code contributions
+function OthersRespawnProcess(PlayerController TmpPC)
+{
+	if (TmpPC.PlayerReplicationInfo != None && !TmpPC.PlayerReplicationInfo.bOnlySpectator && TmpPC.PlayerReplicationInfo.bOutOfLives)
+	{
+		Level.Game.Disable('Timer');
+		TmpPC.PlayerReplicationInfo.bOutOfLives = false;
+		TmpPC.PlayerReplicationInfo.NumLives = 0;
+		TmpPC.PlayerReplicationInfo.Score =   Max(KFGameType(Level.Game).MinRespawnCash, int(TmpPC.PlayerReplicationInfo.Score));
+		TmpPC.GotoState('PlayerWaiting');
+		TmpPC.SetViewTarget(TmpPC);
+		TmpPC.ClientSetBehindView(false);
+		TmpPC.bBehindView = False;
+		TmpPC.ClientSetViewTarget(TmpPC.Pawn);
+		KFGameType(Level.Game).bWaveInProgress = false;
+		TmpPC.ServerReStartPlayer();
+		KFGameType(Level.Game).bWaveInProgress = true;
+		Level.Game.Enable('Timer');
+		ServerMessage("%w-----|| %b" $TmpPC.PlayerReplicationInfo.PlayerName$ " %whas revived! ||-----");
 	}
 }
 
@@ -354,7 +501,7 @@ defaultproperties
 {
 	// Mandatory Vars
 	GroupName = "KF-ServerTools"
-    FriendlyName = "Server Tools - v1.1"
+    FriendlyName = "Server Tools - v1.2"
     Description = "Collection of cool features to empower your server; Made by Vel-San;"
 
 	// Mut Vars
@@ -364,6 +511,7 @@ defaultproperties
     sCurrentTraderTimeCmd = "tt"
     sCustomTraderTimeCmd = "st"
 	sReviveMe = "revme"
+	sReviveThem = "rev"
 	iDefaultTraderTime = 60
 	iReviveCost = 250
 
