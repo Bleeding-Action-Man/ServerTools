@@ -111,7 +111,7 @@ function Mutate(string command, PlayerController Sender)
 	local string PN, PID;
 	local string WelcomeMSG, DefaultTraderTimeMSG, SkipTraderMSG, CurrentTraderTimeMSG, CustomTraderTimeMSG,
 				MSG1, MSG2, MSG3,
-				ReviveMSG;
+				ReviveMSG, ReviveThemMSG;
 	local array<string> SplitCMD;
 	local int num, i;
 
@@ -128,18 +128,21 @@ function Mutate(string command, PlayerController Sender)
 		CurrentTraderTimeMSG = "%g" $CurrentTraderTimeCmd$ ": Change the current trade time of this wave. %wUsage: %tmutate " $CurrentTraderTimeCmd$ " <6-255>";
 		CustomTraderTimeMSG = "%g" $CustomTraderTimeCmd$ ": Change the default trader time. %wUsage: %tmutate " $CustomTraderTimeCmd$ " <6-255>";
 		ReviveMSG = "%g" $ReviveMe$ ": Revive yourself if you have at least " $ReviveCost$ " Dosh. %wUsage: %tmutate " $ReviveMe;
+		ReviveThemMSG = "%g" $ReviveThem$ ": Revive other players, if you are feeling kind enough ;p " $ReviveCost$ " Dosh. %wUsage: %tmutate " $ReviveThem$ " all %w| %tmutate " $ReviveThem$ " <PlayerName>";
 		SetColor(WelcomeMSG);
 		SetColor(DefaultTraderTimeMSG);
 		SetColor(SkipTraderMSG);
 		SetColor(CurrentTraderTimeMSG);
 		SetColor(CustomTraderTimeMSG);
 		SetColor(ReviveMSG);
+		SetColor(ReviveThemMSG);
 		Sender.ClientMessage(WelcomeMSG);
 		Sender.ClientMessage(DefaultTraderTimeMSG);
 		Sender.ClientMessage(SkipTraderMSG);
 		Sender.ClientMessage(CurrentTraderTimeMSG);
 		Sender.ClientMessage(CustomTraderTimeMSG);
 		Sender.ClientMessage(ReviveMSG);
+		Sender.ClientMessage(ReviveThemMSG);
 		return;
 	}
 
@@ -154,7 +157,7 @@ function Mutate(string command, PlayerController Sender)
 
 	if(Left(command, Len(ReviveThem)) ~= ReviveThem)
 	{
-		FuckingReviveThem(Sender, SplitCMD[1]))
+		FuckingReviveThem(Sender, SplitCMD[1]);
 		ServerMessage("%w-----|| %b" $PN$ " %wis attempting to revive someone! ||-----");
 		return;
 	}
@@ -283,7 +286,7 @@ function bool FuckingReviveMe(PlayerController TmpPC)
 	}
 	else
 	{
-		SelfRespawnProcess(TmpPC)
+		SelfRespawnProcess(TmpPC);
 		dosh = TmpPC.PlayerReplicationInfo.Score;
 		DoshMSG = "%wFuck Yeah! You've been given another chance for life. Your total %g$$$ %wis now: %g" $dosh;
 		SetColor(DoshMSG);
@@ -335,7 +338,28 @@ function bool FuckingReviveThem(PlayerController TmpPC, string PlayerToReviveNAM
 
 			if (PlayerToReviveNAMEMATCH ~= "all")
 			{
-				OthersRespawnProcess(PlayerController(C));
+					// Skip if player is alive
+					if (hp > 0)
+					{
+						continue;
+					}
+
+					// Check if they have enough dosh
+					if (dosh < ReviveCost)
+					{
+						PoorMSG = "%wYou do not have enough dosh! You need %t" $ReviveCost$ " %wDo$h for a revive";
+						SetColor(PoorMSG);
+						TmpPC.ClientMessage(PoorMSG);
+						return false;
+					}
+
+					// If all above conditions are passed, revive current player
+					// And take dosh from the charitable reviver :D
+					dosh = int(TmpPC.PlayerReplicationInfo.Score) - ReviveCost;
+					DoshMSG = "%wFuck Yeah! You've given %b" $PlayerToReviveNAME$ " %wanother chance for life. Your total %g$$$ %wis now: %g" $dosh;
+					SetColor(DoshMSG);
+					TmpPC.ClientMessage(DoshMSG);
+					OthersRespawnProcess(PlayerController(C));
 			}
 			else
 			{
@@ -377,20 +401,6 @@ function bool FuckingReviveThem(PlayerController TmpPC, string PlayerToReviveNAM
 					return false;
 				}
 			}
-		}
-	}
-
-	// If player is dead
-	if ( !TmpPC.PlayerReplicationInfo.bOnlySpectator )
-	{
-		else
-		{
-			RespawnProcess(TmpPC)
-			dosh = TmpPC.PlayerReplicationInfo.Score;
-			DoshMSG = "%wFuck Yeah! You've been given another chance for life. Your total %g$$$ %wis now: %g" $dosh;
-			SetColor(DoshMSG);
-			TmpPC.ClientMessage(DoshMSG);
-			return true;
 		}
 	}
 }
