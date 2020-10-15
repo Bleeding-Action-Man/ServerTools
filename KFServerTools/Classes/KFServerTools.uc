@@ -9,14 +9,15 @@ class KFServerTools extends Mutator Config(KFServerTools);
 
 // Config Vars
 var() config bool bDebug, bAdminAndSelectPlayers;
-var() config string sSkipTraderCmd, sCurrentTraderTimeCmd, sCustomTraderTimeCmd, sReviveMeCmd, sReviveThemCmd;
+var() config string sSkipTraderCmd, sVoteSkipTraderCmd, sCurrentTraderTimeCmd, sCustomTraderTimeCmd, sReviveMeCmd, sReviveThemCmd;
 var() config int iDefaultTraderTime, iReviveCost;
 
 // Tmp Vars
-var bool Debug, AdminAndSelectPlayers;
+var bool Debug, AdminAndSelectPlayers, VoteInProgress;
 var int DefaultTraderTime, ReviveCost;
-var string SkipTraderCmd, CurrentTraderTimeCmd, CustomTraderTimeCmd, ReviveMeCmd, ReviveThemCmd;
+var string SkipTraderCmd, VoteSkipTraderCmd, CurrentTraderTimeCmd, CustomTraderTimeCmd, ReviveMeCmd, ReviveThemCmd;
 var KFGameType KFGT;
+var array<string> aPlayerIDs;
 
 // Players to be marked as either VIP or Donator
 struct SP
@@ -44,7 +45,9 @@ function PreBeginPlay()
 	// Tmp Vars Initialization | I don't like working directly with Config vars (>.<)
 	Debug = bDebug;
 	AdminAndSelectPlayers = bAdminAndSelectPlayers;
+	VoteInProgress = false;
 	SkipTraderCmd = sSkipTraderCmd;
+	VoteSkipTraderCmd = sVoteSkipTraderCmd;
 	CurrentTraderTimeCmd = sCurrentTraderTimeCmd;
 	CustomTraderTimeCmd = sCustomTraderTimeCmd;
 	ReviveMeCmd = sReviveMeCmd;
@@ -69,6 +72,7 @@ function PreBeginPlay()
     	MutLog("-----|| DEBUG - DefaultTraderTime: " $DefaultTraderTime$ " ||-----");
     	MutLog("-----|| DEBUG - AdminAndSelectPlayers: " $AdminAndSelectPlayers$ " ||-----");
     	MutLog("-----|| DEBUG - SkipTraderCmd: " $SkipTraderCmd$ " ||-----");
+    	MutLog("-----|| DEBUG - VoteSkipTraderCmd: " $VoteSkipTraderCmd$ " ||-----");
     	MutLog("-----|| DEBUG - CurrentTraderTimeCmd: " $CurrentTraderTimeCmd$ " ||-----");
     	MutLog("-----|| DEBUG - CustomTraderTimeCmd: " $CustomTraderTimeCmd$ " ||-----");
     	MutLog("-----|| DEBUG - ReviveMeCmd: " $ReviveMeCmd$ " ||-----");
@@ -112,7 +116,7 @@ function ServerMessage(string Msg)
 function Mutate(string command, PlayerController Sender)
 {
 	local string PN, PID;
-	local string WelcomeMSG, DefaultTraderTimeMSG, SkipTraderMSG, CurrentTraderTimeMSG, CustomTraderTimeMSG,
+	local string WelcomeMSG, DefaultTraderTimeMSG, SkipTraderMSG, VoteSkipTraderMSG, CurrentTraderTimeMSG, CustomTraderTimeMSG,
 				MSG1, MSG2, MSG3,
 				ReviveMSG, ReviveThemCmdMSG, AdminsAndSPsMSG;
 	local array<string> SplitCMD;
@@ -126,9 +130,10 @@ function Mutate(string command, PlayerController Sender)
 	if(command ~= "st help" || command ~= "skiptrader help")
 	{
 		WelcomeMSG = "%yYou are viewing Server-Tools Mut Help, below are the commands you can use!";
-		AdminsAndSPsMSG = "%oOnly Admins & Selected players can manipulate trader time!";
+		AdminsAndSPsMSG = "%oOnly Admins & Selected players can manipulate trader time! You can however use the %t" $VoteSkipTraderCmd$ " %ocommand";
 		DefaultTraderTimeMSG = "%bCurrent default trader time: %w" $DefaultTraderTime;
 		SkipTraderMSG = "%w" $SkipTraderCmd$ ": %gSkip the current trader time. %wUsage: %tmutate " $SkipTraderCmd;
+		VoteSkipTraderMSG = "%w" $VoteSkipTraderCmd$ ": %gStart a vote with others to skip trader. %wUsage: %tmutate " $VoteSkipTraderCmd;
 		CurrentTraderTimeMSG = "%w" $CurrentTraderTimeCmd$ ": %gChange the current trade time of this wave. %wUsage: %tmutate " $CurrentTraderTimeCmd$ " <6-255>";
 		CustomTraderTimeMSG = "%w" $CustomTraderTimeCmd$ ": %gChange the default trader time. %wUsage: %tmutate " $CustomTraderTimeCmd$ " <6-255>";
 		ReviveMSG = "%w" $ReviveMeCmd$ ": %gRevive yourself if you have at least %v" $ReviveCost$ " %gDosh. %wUsage: %tmutate " $ReviveMeCmd;
@@ -136,6 +141,7 @@ function Mutate(string command, PlayerController Sender)
 		SetColor(WelcomeMSG);
 		SetColor(DefaultTraderTimeMSG);
 		SetColor(SkipTraderMSG);
+		SetColor(VoteSkipTraderMSG);
 		SetColor(CurrentTraderTimeMSG);
 		SetColor(CustomTraderTimeMSG);
 		SetColor(ReviveMSG);
@@ -148,6 +154,7 @@ function Mutate(string command, PlayerController Sender)
 		}
 		Sender.ClientMessage(DefaultTraderTimeMSG);
 		Sender.ClientMessage(SkipTraderMSG);
+		Sender.ClientMessage(VoteSkipTraderMSG);
 		Sender.ClientMessage(CurrentTraderTimeMSG);
 		Sender.ClientMessage(CustomTraderTimeMSG);
 		Sender.ClientMessage(ReviveMSG);
@@ -155,18 +162,24 @@ function Mutate(string command, PlayerController Sender)
 		return;
 	}
 
+	if(command ~= VoteSkipTraderCmd)
+	{
+		StartSkipVote(Sender);
+		return;
+	}
+
 	if(command ~= ReviveMeCmd)
 	{
 		if(FuckingReviveMeCmd(Sender))
 		{
-			ServerMessage("%w-----|| %b" $PN$ " %whas revived himself! ||-----");
+			ServerMessage("%t" $PN$ " %whas revived himself!");
 		}
 		return;
 	}
 
 	if(Left(command, Len(ReviveThemCmd)) ~= ReviveThemCmd)
 	{
-		ServerMessage("%w-----|| %b" $PN$ " %wis attempting to revive someone! ||-----");
+		ServerMessage("%t" $PN$ " %wis attempting to revive someone!");
 		FuckingReviveThemCmd(Sender, SplitCMD[1]);
 		return;
 	}
@@ -176,12 +189,12 @@ function Mutate(string command, PlayerController Sender)
 		if(FindSteamID(i, PID))
 		{
 			if (command ~= SkipTraderCmd || Left(command, Len(CurrentTraderTimeCmd)) ~= CurrentTraderTimeCmd || Left(command, Len(CustomTraderTimeCmd)) ~= CustomTraderTimeCmd)
-				ServerMessage("%w-----|| %b" $PN$ " %wis %gmodifying %wthe Trader! ||-----");
+				ServerMessage("%t" $PN$ " %wis %gmodifying %wthe Trader!");
 		}
 		else
 		{
 			if (command ~= SkipTraderCmd || Left(command, Len(CurrentTraderTimeCmd)) ~= CurrentTraderTimeCmd || Left(command, Len(CustomTraderTimeCmd)) ~= CustomTraderTimeCmd)
-				ServerMessage("%w-----|| %rWarning %wto: %b" $PN$ "%w! You %rcannot %wmanipulate the trader! Only Special Players have permission. ||-----");
+				ServerMessage("%rWarning %wto: %t" $PN$ "%w! You %rcannot %wmanipulate the trader! Only Special Players have permission.");
 			return;
 		}
 	}
@@ -197,7 +210,7 @@ function Mutate(string command, PlayerController Sender)
 	if (command ~= SkipTraderCmd) {
 		if(KFGameType(Level.Game).bTradingDoorsOpen) {
 			KFGameType(Level.Game).WaveCountDown = 6;
-			ServerMessage("Trader Time Skipped by: %b" $PN);
+			ServerMessage("Trader Time Skipped by: %t" $PN);
 		} else {
 			MSG1 = "%b" $PN$ "%w, %t" $SkipTraderCmd$ " %wis only functional during trader time.";
 			SetColor(MSG1);
@@ -215,9 +228,9 @@ function Mutate(string command, PlayerController Sender)
 			if(num > 255)
 				num = 120;
 			KFGameType(Level.Game).WaveCountDown = num;
-			ServerMessage("%b" $PN$ " %wchanged the current trader time to %t" $string(num)$ " %wseconds.");
+			ServerMessage("%t" $PN$ " %wchanged the current trader time to %t" $string(num)$ " %wseconds.");
 		} else {
-			MSG2 = "%b" $PN$ "%w, %t" $CurrentTraderTimeCmd$ " %wis only functional during trader time.";
+			MSG2 = "%t" $PN$ "%w, %t" $CurrentTraderTimeCmd$ " %wis only functional during trader time.";
 			SetColor(MSG2);
      		Sender.ClientMessage(MSG2);
 		}
@@ -233,18 +246,88 @@ function Mutate(string command, PlayerController Sender)
 			return;
 		}
 		KFGameType(Level.Game).TimeBetweenWaves = int(SplitCMD[1]);
-		ServerMessage("%b" $PN$ " %wchanged the trader time between waves to %t" $string(int(SplitCMD[1]))$ " %wseconds.");
+		ServerMessage("%t" $PN$ " %wchanged the trader time between waves to %t" $string(int(SplitCMD[1]))$ " %wseconds.");
 
 	}
 	if (NextMutator != None )
 		NextMutator.Mutate(command, Sender);
 }
 
+// Ability for a player to register a skip-trader vote
+function bool StartSkipVote(PlayerController TmpPC)
+{
+	local string PendingMSG, EndedMSG, InProgressMSG, AlreadyVotedMSG, PlayerID, TmpPlayerName;
+	local int i;
+	local bool bAlreadyVoted;
+
+	// Bool to check in case an Admin is using mutate skip to override this
+	VoteInProgress = true;
+	bAlreadyVoted = false;
+
+	// Conditions to neglect votes
+	if(KFGT.IsInState('PendingMatch'))
+	{
+		VoteInProgress = false;
+		PendingMSG = "%wThe game hasn't started yet!";
+		SetColor(PendingMSG);
+		TmpPC.ClientMessage(PendingMSG);
+		return false;
+	}
+
+	if(KFGT.IsInState('GameEnded'))
+	{
+		VoteInProgress = false;
+		EndedMSG = "%wThe game has ended!";
+		SetColor(EndedMSG);
+		TmpPC.ClientMessage(EndedMSG);
+		return false;
+	}
+
+	if(KFGameType(Level.Game).bWaveInProgress)
+	{
+		VoteInProgress = false;
+		InProgressMSG = "%wYou cannot start a vote while a wave is in progress!";
+		SetColor(InProgressMSG);
+		TmpPC.ClientMessage(InProgressMSG);
+		return false;
+	}
+
+	// Conditions passed, start a vote
+	TmpPlayerName = TmpPC.PlayerReplicationInfo.PlayerName;
+	PlayerID = TmpPC.GetPlayerIDHash();
+	for(i=0;i<aPlayerIDs.length;i++)
+		{
+			if(aPlayerIDs[i] == PlayerID)
+			{
+				bAlreadyVoted = true;
+				AlreadyVotedMSG = "%wYou cannot vote twice, your vote has already been registered!";
+				SetColor(AlreadyVotedMSG);
+				TmpPC.ClientMessage(AlreadyVotedMSG);
+				return false;
+			}
+		}
+		if(bAlreadyVoted == false)
+		{
+			aPlayerIDs.Insert(0,1);
+			aPlayerIDs[0] = PlayerID;
+			ServerMessage("%t" $TmpPlayerName$ " %wis ready to skip trader | type in your console %bmutate " $VoteSkipTraderCmd$ " %wif you're also ready");
+		}
+		if(aPlayerIDs.length == GetActualPlayers())
+		{
+			KFGT.WaveCountDown = 6;
+			aPlayerIDs.length = 0;
+			return true;
+		}
+}
+
+// TODO: Add Trader config in ESC-Menu, request from MADMAX
+// This should work similar to ReloadOptionsMut
+
 // Allow players to revive themselves if they have enough do$h!
 function bool FuckingReviveMeCmd(PlayerController TmpPC)
 {
 	local int dosh, hp;
-	local string PendingMSG, EndedMSG, InProgress, AliveMSG, DeadMSG, DoshMSG;
+	local string PendingMSG, EndedMSG, InProgressMSG, AliveMSG, DeadMSG, DoshMSG;
 
 	if(KFGT.IsInState('PendingMatch'))
 	{
@@ -264,9 +347,9 @@ function bool FuckingReviveMeCmd(PlayerController TmpPC)
 
 	if(!KFGameType(Level.Game).bWaveInProgress)
 	{
-		InProgress = "%wAll players are already alive in Trader Time";
-		SetColor(InProgress);
-		TmpPC.ClientMessage(InProgress);
+		InProgressMSG = "%wAll players are already alive in Trader Time";
+		SetColor(InProgressMSG);
+		TmpPC.ClientMessage(InProgressMSG);
 		return false;
 	}
 
@@ -306,7 +389,7 @@ function bool FuckingReviveMeCmd(PlayerController TmpPC)
 function bool FuckingReviveThemCmd(PlayerController TmpPC, string PlayerToReviveNAMEMATCH)
 {
 	local int dosh, hp, isPlayerFound;
-	local string PendingMSG, EndedMSG, InProgress, AliveMSG, NotFoundMSG, PoorMSG, DoshMSG, PlayerToReviveNAME;
+	local string PendingMSG, EndedMSG, InProgressMSG, AliveMSG, NotFoundMSG, PoorMSG, DoshMSG, PlayerToReviveNAME;
 	local Controller c;
 
 	// Dosh of the player attempting to revive another player
@@ -330,9 +413,9 @@ function bool FuckingReviveThemCmd(PlayerController TmpPC, string PlayerToRevive
 
 	if(!KFGameType(Level.Game).bWaveInProgress)
 	{
-		InProgress = "%wAll players are already alive in Trader Time";
-		SetColor(InProgress);
-		TmpPC.ClientMessage(InProgress);
+		InProgressMSG = "%wAll players are already alive in Trader Time";
+		SetColor(InProgressMSG);
+		TmpPC.ClientMessage(InProgressMSG);
 		return false;
 	}
 
@@ -363,7 +446,7 @@ function bool FuckingReviveThemCmd(PlayerController TmpPC, string PlayerToRevive
 					// If all above conditions are passed, revive current player
 					// And take dosh from the charitable reviver :D
 					dosh = int(TmpPC.PlayerReplicationInfo.Score) - ReviveCost;
-					DoshMSG = "%wFuck Yeah! You've given %b" $PlayerToReviveNAME$ " %wanother chance for life. Your total %g$$$ %wis now: %g" $dosh;
+					DoshMSG = "%wFuck Yeah! You've given %t" $PlayerToReviveNAME$ " %wanother chance for life. Your total %g$$$ %wis now: %g" $dosh;
 					SetColor(DoshMSG);
 					TmpPC.ClientMessage(DoshMSG);
 					OthersRespawnProcess(PlayerController(C));
@@ -394,7 +477,7 @@ function bool FuckingReviveThemCmd(PlayerController TmpPC, string PlayerToRevive
 					// If all above conditions are passed, revive this player!
 					// And take dosh from the charitable reviver :D
 					dosh = int(TmpPC.PlayerReplicationInfo.Score) - ReviveCost;
-					DoshMSG = "%wFuck Yeah! You've given %b" $PlayerToReviveNAME$ " %wanother chance for life. Your total %g$$$ %wis now: %g" $dosh;
+					DoshMSG = "%wFuck Yeah! You've given %t" $PlayerToReviveNAME$ " %wanother chance for life. Your total %g$$$ %wis now: %g" $dosh;
 					SetColor(DoshMSG);
 					TmpPC.ClientMessage(DoshMSG);
 					OthersRespawnProcess(PlayerController(C));
@@ -453,7 +536,7 @@ function OthersRespawnProcess(PlayerController TmpPC)
 		TmpPC.ServerReStartPlayer();
 		KFGameType(Level.Game).bWaveInProgress = true;
 		Level.Game.Enable('Timer');
-		ServerMessage("%w-----|| %b" $TmpPC.PlayerReplicationInfo.PlayerName$ " %whas revived! ||-----");
+		ServerMessage("%t" $TmpPC.PlayerReplicationInfo.PlayerName$ " %whas revived!");
 	}
 }
 
@@ -466,6 +549,26 @@ final function bool FindSteamID(out int i, string ID)
         }
     }
     return false;
+}
+
+// Gets actual players regardless of bots/faked players or spectaters
+// Credits for AdminMut
+function int GetActualPlayers()
+{
+  	local Controller C;
+  	local PlayerReplicationInfo PRI;
+  	local int i;
+
+  	i = 0;
+  	for( C=Level.ControllerList; C!=None; C=C.NextController )
+  	{
+  	  PRI = C.PlayerReplicationInfo;
+  	  if( (PRI != None) && !PRI.bBot && MessagingSpectator(C) == None )
+  	  {
+  	    i++;
+  	  }
+  	}
+  	return i;
 }
 
 function TimeStampLog(coerce string s)
@@ -518,13 +621,14 @@ defaultproperties
 {
 	// Mandatory Vars
 	GroupName = "KF-ServerTools"
-    FriendlyName = "Server Tools - v1.3"
+    FriendlyName = "Server Tools - v1.4"
     Description = "Collection of cool features to empower your server; Made by Vel-San;"
 
 	// Mut Vars
 	bDebug = False
 	bAdminAndSelectPlayers = True
     sSkipTraderCmd = "skip"
+	sVoteSkipTraderCmd = "voteskip"
     sCurrentTraderTimeCmd = "tt"
     sCustomTraderTimeCmd = "st"
 	sReviveMeCmd = "revme"
