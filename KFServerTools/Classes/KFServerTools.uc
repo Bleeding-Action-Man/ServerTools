@@ -9,13 +9,13 @@ class KFServerTools extends Mutator Config(KFServerTools);
 
 // Config Vars
 var() config bool bDebug, bAdminAndSelectPlayers;
-var() config string sSkipTraderCmd, sVoteSkipTraderCmd, sCurrentTraderTimeCmd, sCustomTraderTimeCmd, sReviveMeCmd, sReviveThemCmd;
+var() config string sSkipTraderCmd, sVoteSkipTraderCmd, sCurrentTraderTimeCmd, sCustomTraderTimeCmd, sReviveListCmd, sReviveMeCmd, sReviveThemCmd;
 var() config int iDefaultTraderTime, iReviveCost;
 
 // Tmp Vars
 var bool Debug, AdminAndSelectPlayers, VoteInProgress;
 var int DefaultTraderTime, ReviveCost;
-var string SkipTraderCmd, VoteSkipTraderCmd, CurrentTraderTimeCmd, CustomTraderTimeCmd, ReviveMeCmd, ReviveThemCmd;
+var string SkipTraderCmd, VoteSkipTraderCmd, CurrentTraderTimeCmd, CustomTraderTimeCmd, ReviveListCmd, ReviveMeCmd, ReviveThemCmd;
 var KFGameType KFGT;
 var array<string> aPlayerIDs;
 
@@ -50,6 +50,7 @@ function PreBeginPlay()
 	VoteSkipTraderCmd = sVoteSkipTraderCmd;
 	CurrentTraderTimeCmd = sCurrentTraderTimeCmd;
 	CustomTraderTimeCmd = sCustomTraderTimeCmd;
+	ReviveListCmd = sReviveListCmd;
 	ReviveMeCmd = sReviveMeCmd;
 	ReviveThemCmd = sReviveThemCmd;
 	ReviveCost = iReviveCost;
@@ -75,6 +76,7 @@ function PreBeginPlay()
     	MutLog("-----|| DEBUG - VoteSkipTraderCmd: " $VoteSkipTraderCmd$ " ||-----");
     	MutLog("-----|| DEBUG - CurrentTraderTimeCmd: " $CurrentTraderTimeCmd$ " ||-----");
     	MutLog("-----|| DEBUG - CustomTraderTimeCmd: " $CustomTraderTimeCmd$ " ||-----");
+    	MutLog("-----|| DEBUG - ReviveListCmd: " $ReviveListCmd$ " ||-----");
     	MutLog("-----|| DEBUG - ReviveMeCmd: " $ReviveMeCmd$ " ||-----");
     	MutLog("-----|| DEBUG - ReviveThemCmd: " $ReviveThemCmd$ " ||-----");
     	MutLog("-----|| DEBUG - ReviveCost: " $ReviveCost$ " ||-----");
@@ -116,9 +118,9 @@ function ServerMessage(string Msg)
 function Mutate(string command, PlayerController Sender)
 {
 	local string PN, PID;
-	local string WelcomeMSG, DefaultTraderTimeMSG, SkipTraderMSG, VoteSkipTraderMSG, CurrentTraderTimeMSG, CustomTraderTimeMSG,
+	local string WelcomeMSG, AdminsAndSPsMSG, DefaultTraderTimeMSG, SkipTraderMSG, VoteSkipTraderMSG, CurrentTraderTimeMSG, CustomTraderTimeMSG,
 				MSG1, MSG2, MSG3,
-				ReviveMSG, ReviveThemCmdMSG, AdminsAndSPsMSG;
+				ReviveMeMSG, ReviveListMSG, ReviveThemMSG;
 	local array<string> SplitCMD;
 	local int num, i;
 
@@ -136,16 +138,18 @@ function Mutate(string command, PlayerController Sender)
 		VoteSkipTraderMSG = "%w" $VoteSkipTraderCmd$ ": %gStart a vote with others to skip trader. %wUsage: %tmutate " $VoteSkipTraderCmd;
 		CurrentTraderTimeMSG = "%w" $CurrentTraderTimeCmd$ ": %gChange the current trade time of this wave. %wUsage: %tmutate " $CurrentTraderTimeCmd$ " <6-255>";
 		CustomTraderTimeMSG = "%w" $CustomTraderTimeCmd$ ": %gChange the default trader time. %wUsage: %tmutate " $CustomTraderTimeCmd$ " <6-255>";
-		ReviveMSG = "%w" $ReviveMeCmd$ ": %gRevive yourself if you have at least %v" $ReviveCost$ " %gDosh. %wUsage: %tmutate " $ReviveMeCmd;
-		ReviveThemCmdMSG = "%w" $ReviveThemCmd$ ": %gRevive other players, if you are feeling kind enough ;p costs %v" $ReviveCost$ " %gDosh. %wUsage: %tmutate " $ReviveThemCmd$ " all %w| %tmutate " $ReviveThemCmd$ " <PlayerName>";
+		ReviveMeMSG = "%w" $ReviveMeCmd$ ": %gRevive yourself if you have at least %v" $ReviveCost$ " %gDosh. %wUsage: %tmutate " $ReviveMeCmd;
+		ReviveListMSG = "%w" $ReviveListCmd$ ": %gShows a list of every dead player + their revive code. %wUsage: %tmutate " $ReviveListCmd;
+		ReviveThemMSG = "%w" $ReviveThemCmd$ ": %gRevive other players, if you are feeling kind enough ;p costs %v" $ReviveCost$ " %gDosh. %wUsage: %tmutate " $ReviveThemCmd$ " all %w/ %tmutate " $ReviveThemCmd$ " <Rev Code>";
 		SetColor(WelcomeMSG);
 		SetColor(DefaultTraderTimeMSG);
 		SetColor(SkipTraderMSG);
 		SetColor(VoteSkipTraderMSG);
 		SetColor(CurrentTraderTimeMSG);
 		SetColor(CustomTraderTimeMSG);
-		SetColor(ReviveMSG);
-		SetColor(ReviveThemCmdMSG);
+		SetColor(ReviveMeMSG);
+		SetColor(ReviveListMSG);
+		SetColor(ReviveThemMSG);
 		Sender.ClientMessage(WelcomeMSG);
 		if(AdminAndSelectPlayers)
 		{
@@ -157,8 +161,9 @@ function Mutate(string command, PlayerController Sender)
 		Sender.ClientMessage(VoteSkipTraderMSG);
 		Sender.ClientMessage(CurrentTraderTimeMSG);
 		Sender.ClientMessage(CustomTraderTimeMSG);
-		Sender.ClientMessage(ReviveMSG);
-		Sender.ClientMessage(ReviveThemCmdMSG);
+		Sender.ClientMessage(ReviveMeMSG);
+		Sender.ClientMessage(ReviveListMSG);
+		Sender.ClientMessage(ReviveThemMSG);
 		return;
 	}
 
@@ -174,6 +179,12 @@ function Mutate(string command, PlayerController Sender)
 		{
 			ServerMessage("%t" $PN$ " %whas revived himself!");
 		}
+		return;
+	}
+
+	if(command ~= ReviveListCmd)
+	{
+		WhoTheFuckIsDead(Sender);
 		return;
 	}
 
@@ -310,7 +321,7 @@ function bool StartSkipVote(PlayerController TmpPC)
 		{
 			aPlayerIDs.Insert(0,1);
 			aPlayerIDs[0] = PlayerID;
-			ServerMessage("%t" $TmpPlayerName$ " %wis ready to skip trader | type in your console %bmutate " $VoteSkipTraderCmd$ " %wif you're also ready");
+			ServerMessage("%t" $TmpPlayerName$ " %wis ready to skip trader / type in your console %bmutate " $VoteSkipTraderCmd$ " %wif you're also ready");
 		}
 		if(aPlayerIDs.length == GetActualPlayers())
 		{
@@ -320,13 +331,19 @@ function bool StartSkipVote(PlayerController TmpPC)
 		}
 }
 
+// TODO: Timer to reset Votes (aPlayerIDs.length = 0) if a new wave starts
+// Trigger it on every wave start, delayed by mutate tt, st or skip
+
 // TODO: Add Trader config in ESC-Menu, request from MADMAX
 // This should work similar to ReloadOptionsMut
+
+// TODO: Add Debugging in almost all functions
 
 // Allow players to revive themselves if they have enough do$h!
 function bool FuckingReviveMeCmd(PlayerController TmpPC)
 {
-	local int dosh, hp;
+	local int dosh;
+	local bool bIsAlive; // False = Alive, True = Dead;
 	local string PendingMSG, EndedMSG, InProgressMSG, AliveMSG, DeadMSG, DoshMSG;
 
 	if(KFGT.IsInState('PendingMatch'))
@@ -353,11 +370,11 @@ function bool FuckingReviveMeCmd(PlayerController TmpPC)
 		return false;
 	}
 
-	hp = TmpPC.Pawn.Health;
+	bIsAlive = TmpPC.PlayerReplicationInfo.bOutOfLives;
 	dosh = TmpPC.PlayerReplicationInfo.Score;
 
 	// If player is alive
-	if (hp > 0)
+	if (bIsAlive == false)
 	{
 		AliveMSG = "%wYou're already alive!";
 		SetColor(AliveMSG);
@@ -386,11 +403,12 @@ function bool FuckingReviveMeCmd(PlayerController TmpPC)
 }
 
 // Allow players to revive other players, and the dosh will be deducted from their own
-function bool FuckingReviveThemCmd(PlayerController TmpPC, string PlayerToReviveNAMEMATCH)
+function bool FuckingReviveThemCmd(PlayerController TmpPC, string PlayerToReviveCodeMATCH)
 {
-	local int dosh, hp, isPlayerFound;
-	local string PendingMSG, EndedMSG, InProgressMSG, AliveMSG, NotFoundMSG, PoorMSG, DoshMSG, PlayerToReviveNAME;
+	local int dosh, isPlayerFound;
+	local string PendingMSG, EndedMSG, InProgressMSG, AliveMSG, NotFoundMSG, PoorMSG, DoshMSG, PlayerToReviveNAME, PlayerToReviveCode;
 	local Controller c;
+	local bool bIsAlive; // false = Alive, true = Dead
 
 	// Dosh of the player attempting to revive another player
 	dosh = TmpPC.PlayerReplicationInfo.Score;
@@ -421,15 +439,16 @@ function bool FuckingReviveThemCmd(PlayerController TmpPC, string PlayerToRevive
 
 	for( C = Level.ControllerList; C != None; C = C.nextController )
 	{
-		if( C.IsA('PlayerController') )
+		if( C.IsA('PlayerController') && PlayerController(C).PlayerReplicationInfo.PlayerID != 0)
 		{
-			hp = C.Pawn.Health;
+			bIsAlive = C.PlayerReplicationInfo.bOutOfLives;
 			PlayerToReviveNAME = C.PlayerReplicationInfo.PlayerName;
+			PlayerToReviveCode = PlayerController(C).GetPlayerIDHash();
 
-			if (PlayerToReviveNAMEMATCH ~= "all")
+			if (PlayerToReviveCodeMATCH ~= "all")
 			{
 					// Skip if player is alive
-					if (hp > 0)
+					if (bIsAlive == false)
 					{
 						continue;
 					}
@@ -445,7 +464,8 @@ function bool FuckingReviveThemCmd(PlayerController TmpPC, string PlayerToRevive
 
 					// If all above conditions are passed, revive current player
 					// And take dosh from the charitable reviver :D
-					dosh = int(TmpPC.PlayerReplicationInfo.Score) - ReviveCost;
+					TmpPC.PlayerReplicationInfo.Score = int(TmpPC.PlayerReplicationInfo.Score) - ReviveCost;
+					dosh = TmpPC.PlayerReplicationInfo.Score;
 					DoshMSG = "%wFuck Yeah! You've given %t" $PlayerToReviveNAME$ " %wanother chance for life. Your total %g$$$ %wis now: %g" $dosh;
 					SetColor(DoshMSG);
 					TmpPC.ClientMessage(DoshMSG);
@@ -453,11 +473,11 @@ function bool FuckingReviveThemCmd(PlayerController TmpPC, string PlayerToRevive
 			}
 			else
 			{
-				isPlayerFound = InStr( Caps(PlayerToReviveNAME), Caps(PlayerToReviveNAMEMATCH));
+				isPlayerFound = InStr( Caps(PlayerToReviveCode), Caps(PlayerToReviveCodeMATCH));
 				if (isPlayerFound >=0)
 				{
 					// If player being revived is already alive
-					if (hp > 0)
+					if (bIsAlive == false)
 					{
 						AliveMSG = "%t" $PlayerToReviveNAME$ " %wis already alive!";
 						SetColor(AliveMSG);
@@ -476,7 +496,8 @@ function bool FuckingReviveThemCmd(PlayerController TmpPC, string PlayerToRevive
 
 					// If all above conditions are passed, revive this player!
 					// And take dosh from the charitable reviver :D
-					dosh = int(TmpPC.PlayerReplicationInfo.Score) - ReviveCost;
+					TmpPC.PlayerReplicationInfo.Score = int(TmpPC.PlayerReplicationInfo.Score) - ReviveCost;
+					dosh = TmpPC.PlayerReplicationInfo.Score;
 					DoshMSG = "%wFuck Yeah! You've given %t" $PlayerToReviveNAME$ " %wanother chance for life. Your total %g$$$ %wis now: %g" $dosh;
 					SetColor(DoshMSG);
 					TmpPC.ClientMessage(DoshMSG);
@@ -485,7 +506,7 @@ function bool FuckingReviveThemCmd(PlayerController TmpPC, string PlayerToRevive
 				}
 				else
 				{
-					NotFoundMSG = "%t" $PlayerToReviveNAMEMATCH$ " %wis not related to any of the players! Try again with a more accurate name.";
+					NotFoundMSG = "%t" $PlayerToReviveCodeMATCH$ " %wis not related to any of the players! Try again with a more accurate name.";
 					SetColor(NotFoundMSG);
 					TmpPC.ClientMessage(NotFoundMSG);
 					return false;
@@ -549,6 +570,70 @@ final function bool FindSteamID(out int i, string ID)
         }
     }
     return false;
+}
+
+// Print all 'dead' player names + IDs for revival message
+final function WhoTheFuckIsDead(PlayerController TmpPC)
+{
+	local bool bIsAlive, bNoOneDead;
+	local Controller C;
+	local string PendingMSG, EndedMSG, InProgressMSG, DeadPlayerMSG, NoOneDeadMSG, DeadPlayerName, DeadPlayerID, DeadPlayerRevCode;
+
+	bNoOneDead = true;
+
+	if(KFGT.IsInState('PendingMatch'))
+	{
+		PendingMSG = "%wThe game hasn't started yet!";
+		SetColor(PendingMSG);
+		TmpPC.ClientMessage(PendingMSG);
+		return;
+	}
+
+	if(KFGT.IsInState('GameEnded'))
+	{
+		EndedMSG = "%wThe game has ended, you cannot revive!";
+		SetColor(EndedMSG);
+		TmpPC.ClientMessage(EndedMSG);
+		return;
+	}
+
+	if(!KFGameType(Level.Game).bWaveInProgress)
+	{
+		InProgressMSG = "%wAll players are already alive in Trader Time";
+		SetColor(InProgressMSG);
+		TmpPC.ClientMessage(InProgressMSG);
+		return;
+	}
+
+	for( C = Level.ControllerList; C != None; C = C.nextController )
+	{
+		if( C.IsA('PlayerController') && PlayerController(C).PlayerReplicationInfo.PlayerID != 0)
+		{
+			bIsAlive = C.PlayerReplicationInfo.bOutOfLives;
+			DeadPlayerName = C.PlayerReplicationInfo.PlayerName;
+			DeadPlayerID = PlayerController(C).GetPlayerIDHash();
+			DeadPlayerRevCode = Right(DeadPlayerID, 5);
+
+			// Skip if player is alive
+			if (bIsAlive == false)
+			{
+				continue;
+			}
+
+			bNoOneDead = false;
+			DeadPlayerMSG = "%t" $DeadPlayerName$ " %w / rev code: %t" $DeadPlayerRevCode$ " %w/ full code: %t" $DeadPlayerID;
+			SetColor(DeadPlayerMSG);
+			TmpPC.ClientMessage(DeadPlayerMSG);
+		}
+	}
+
+	if(bNoOneDead)
+	{
+		NoOneDeadMSG = "%wAll players are alive!";
+		SetColor(NoOneDeadMSG);
+		TmpPC.ClientMessage(NoOneDeadMSG);
+		return;
+	}
 }
 
 // Gets actual players regardless of bots/faked players or spectaters
@@ -621,7 +706,7 @@ defaultproperties
 {
 	// Mandatory Vars
 	GroupName = "KF-ServerTools"
-    FriendlyName = "Server Tools - v1.4"
+    FriendlyName = "Server Tools - v1.5"
     Description = "Collection of cool features to empower your server; Made by Vel-San;"
 
 	// Mut Vars
@@ -631,6 +716,7 @@ defaultproperties
 	sVoteSkipTraderCmd = "voteskip"
     sCurrentTraderTimeCmd = "tt"
     sCustomTraderTimeCmd = "st"
+	sReviveListCmd = "dpl"
 	sReviveMeCmd = "revme"
 	sReviveThemCmd = "rev"
 	iDefaultTraderTime = 60
