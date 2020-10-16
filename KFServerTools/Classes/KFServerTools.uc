@@ -13,7 +13,7 @@ var() config string sSkipTraderCmd, sVoteSkipTraderCmd, sCurrentTraderTimeCmd, s
 var() config int iDefaultTraderTime, iReviveCost;
 
 // Tmp Vars
-var bool Debug, AdminAndSelectPlayers, VoteInProgress;
+var bool Debug, AdminAndSelectPlayers, VoteInProgress, IsTimerActive;
 var int DefaultTraderTime, ReviveCost;
 var string SkipTraderCmd, VoteSkipTraderCmd, CurrentTraderTimeCmd, CustomTraderTimeCmd, ReviveListCmd, ReviveMeCmd, ReviveThemCmd;
 var KFGameType KFGT;
@@ -37,7 +37,7 @@ struct ColorRecord
 };
 var() config array<ColorRecord> ColorList; // Color list
 
-// Timer Trigger
+// Initialization
 function PreBeginPlay()
 {
 	local int i;
@@ -46,6 +46,7 @@ function PreBeginPlay()
 	Debug = bDebug;
 	AdminAndSelectPlayers = bAdminAndSelectPlayers;
 	VoteInProgress = false;
+	IsTimerActive = false;
 	SkipTraderCmd = sSkipTraderCmd;
 	VoteSkipTraderCmd = sVoteSkipTraderCmd;
 	CurrentTraderTimeCmd = sCurrentTraderTimeCmd;
@@ -55,7 +56,7 @@ function PreBeginPlay()
 	ReviveThemCmd = sReviveThemCmd;
 	ReviveCost = iReviveCost;
 	DefaultTraderTime = iDefaultTraderTime;
-	KFGT = KFGameType(level.game);
+	KFGT = KFGameType(Level.Game);
 
 	if(KFGT == none)
 	{
@@ -82,17 +83,24 @@ function PreBeginPlay()
     	MutLog("-----|| DEBUG - ReviveCost: " $ReviveCost$ " ||-----");
     	MutLog("-----|| DEBUG - # Of Special Players Players: " $SpecialPlayers.Length$ " ||-----");
 	}
-	SetTimer(1, false);
+
+	if (DefaultTraderTime > 0)
+	{
+		TimeStampLog("-----|| Default Trader Time Modified (" $DefaultTraderTime$ ") ||-----");
+		KFGT.TimeBetweenWaves = DefaultTraderTime;
+	}
 }
 
 // Timer to change default trader time
 function Timer()
 {
-	if (DefaultTraderTime > 0)
-	{
-		TimeStampLog("-----|| Default Trader Time Modified ||-----");
-		KFGameType(Level.Game).TimeBetweenWaves = DefaultTraderTime;
-	}
+
+	if(Debug)
+    	MutLog("-----|| DEBUG - New wave started | Trader Skip Votes reset ||-----");
+
+	// Reset the Votes array after trader is done
+	aPlayerIDs.length = 0;
+	IsTimerActive = false;
 }
 
 final function SplitStringToArray(out array<string> Parts, string Source, string Delim)
@@ -219,8 +227,8 @@ function Mutate(string command, PlayerController Sender)
 
 	// Skip the trader by setting wave countdown to 6 instantly
 	if (command ~= SkipTraderCmd) {
-		if(KFGameType(Level.Game).bTradingDoorsOpen) {
-			KFGameType(Level.Game).WaveCountDown = 6;
+		if(KFGT.bTradingDoorsOpen) {
+			KFGT.WaveCountDown = 6;
 			ServerMessage("Trader Time Skipped by: %t" $PN);
 		} else {
 			MSG1 = "%b" $PN$ "%w, %t" $SkipTraderCmd$ " %wis only functional during trader time.";
@@ -233,12 +241,12 @@ function Mutate(string command, PlayerController Sender)
 	// Limited between 6 and 255
 	if (Left(command, Len(CurrentTraderTimeCmd)) ~= CurrentTraderTimeCmd) {
 		num = int(SplitCMD[1]);
-		if(KFGameType(Level.Game).bTradingDoorsOpen) {
+		if(KFGT.bTradingDoorsOpen) {
 			if(num <= 6)
 				num = 6;
 			if(num > 255)
 				num = 120;
-			KFGameType(Level.Game).WaveCountDown = num;
+			KFGT.WaveCountDown = num;
 			ServerMessage("%t" $PN$ " %wchanged the current trader time to %t" $string(num)$ " %wseconds.");
 		} else {
 			MSG2 = "%t" $PN$ "%w, %t" $CurrentTraderTimeCmd$ " %wis only functional during trader time.";
@@ -256,7 +264,7 @@ function Mutate(string command, PlayerController Sender)
 			Sender.ClientMessage(MSG3);
 			return;
 		}
-		KFGameType(Level.Game).TimeBetweenWaves = int(SplitCMD[1]);
+		KFGT.TimeBetweenWaves = int(SplitCMD[1]);
 		ServerMessage("%t" $PN$ " %wchanged the trader time between waves to %t" $string(int(SplitCMD[1]))$ " %wseconds.");
 
 	}
@@ -294,7 +302,7 @@ function bool StartSkipVote(PlayerController TmpPC)
 		return false;
 	}
 
-	if(KFGameType(Level.Game).bWaveInProgress)
+	if(KFGT.bWaveInProgress)
 	{
 		VoteInProgress = false;
 		InProgressMSG = "%wYou cannot start a vote while a wave is in progress!";
@@ -322,9 +330,19 @@ function bool StartSkipVote(PlayerController TmpPC)
 			aPlayerIDs.Insert(0,1);
 			aPlayerIDs[0] = PlayerID;
 			ServerMessage("%t" $TmpPlayerName$ " %wis ready to skip trader / type in your console %bmutate " $VoteSkipTraderCmd$ " %wif you're also ready");
+			// Reset aPlayerIDs to 0 if once a new wave starts
+			if(IsTimerActive == false)
+			{
+				SetTimer( KFGT.WaveCountDown, false);
+				IsTimerActive = true;
+			}
 		}
 		if(aPlayerIDs.length == GetActualPlayers())
 		{
+			Disable('Timer');
+			IsTimerActive = false;
+			if(Debug)
+    			MutLog("-----|| DEBUG - New wave started | Trader Skip Votes reset | Timer Disabled ||-----");
 			KFGT.WaveCountDown = 6;
 			aPlayerIDs.length = 0;
 			return true;
@@ -362,7 +380,7 @@ function bool FuckingReviveMeCmd(PlayerController TmpPC)
 		return false;
 	}
 
-	if(!KFGameType(Level.Game).bWaveInProgress)
+	if(!KFGT.bWaveInProgress)
 	{
 		InProgressMSG = "%wAll players are already alive in Trader Time";
 		SetColor(InProgressMSG);
@@ -429,7 +447,7 @@ function bool FuckingReviveThemCmd(PlayerController TmpPC, string PlayerToRevive
 		return false;
 	}
 
-	if(!KFGameType(Level.Game).bWaveInProgress)
+	if(!KFGT.bWaveInProgress)
 	{
 		InProgressMSG = "%wAll players are already alive in Trader Time";
 		SetColor(InProgressMSG);
@@ -531,9 +549,9 @@ function SelfRespawnProcess(PlayerController TmpPC)
 		TmpPC.ClientSetBehindView(false);
 		TmpPC.bBehindView = False;
 		TmpPC.ClientSetViewTarget(TmpPC.Pawn);
-		KFGameType(Level.Game).bWaveInProgress = false;
+		KFGT.bWaveInProgress = false;
 		TmpPC.ServerReStartPlayer();
-		KFGameType(Level.Game).bWaveInProgress = true;
+		KFGT.bWaveInProgress = true;
 		Level.Game.Enable('Timer');
 	}
 }
@@ -547,15 +565,15 @@ function OthersRespawnProcess(PlayerController TmpPC)
 		Level.Game.Disable('Timer');
 		TmpPC.PlayerReplicationInfo.bOutOfLives = false;
 		TmpPC.PlayerReplicationInfo.NumLives = 0;
-		TmpPC.PlayerReplicationInfo.Score =   Max(KFGameType(Level.Game).MinRespawnCash, int(TmpPC.PlayerReplicationInfo.Score));
+		TmpPC.PlayerReplicationInfo.Score =   Max(KFGT.MinRespawnCash, int(TmpPC.PlayerReplicationInfo.Score));
 		TmpPC.GotoState('PlayerWaiting');
 		TmpPC.SetViewTarget(TmpPC);
 		TmpPC.ClientSetBehindView(false);
 		TmpPC.bBehindView = False;
 		TmpPC.ClientSetViewTarget(TmpPC.Pawn);
-		KFGameType(Level.Game).bWaveInProgress = false;
+		KFGT.bWaveInProgress = false;
 		TmpPC.ServerReStartPlayer();
-		KFGameType(Level.Game).bWaveInProgress = true;
+		KFGT.bWaveInProgress = true;
 		Level.Game.Enable('Timer');
 		ServerMessage("%t" $TmpPC.PlayerReplicationInfo.PlayerName$ " %whas revived!");
 	}
@@ -597,7 +615,7 @@ final function WhoTheFuckIsDead(PlayerController TmpPC)
 		return;
 	}
 
-	if(!KFGameType(Level.Game).bWaveInProgress)
+	if(!KFGT.bWaveInProgress)
 	{
 		InProgressMSG = "%wAll players are already alive in Trader Time";
 		SetColor(InProgressMSG);
@@ -706,7 +724,7 @@ defaultproperties
 {
 	// Mandatory Vars
 	GroupName = "KF-ServerTools"
-    FriendlyName = "Server Tools - v1.5"
+    FriendlyName = "Server Tools - v1.6"
     Description = "Collection of cool features to empower your server; Made by Vel-San;"
 
 	// Mut Vars
