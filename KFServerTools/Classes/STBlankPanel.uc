@@ -2,7 +2,6 @@ class STBlankPanel extends MidGamePanel;
 
 var automated array<GUIButton> b_KFButtons;
 var noexport bool bNetGame;
-var localized string LeaveMPButtonText, LeaveSPButtonText, SpectateButtonText, JoinGameButtonText, KickPlayer, BanPlayer;
 var string PlayerStyleName;
 var GUIStyles PlayerStyle;
 
@@ -39,10 +38,25 @@ function bool RemoveComponent(GUIComponent Comp, optional bool SkipRemap) {
 }
 
 function ShowPanel(bool bShow) {
-	Super.ShowPanel(bShow);
 
+    local PlayerController TmpPC;
+    local string PlayerID;
+    local int i;
+
+    TmpPC = PlayerOwner();
+    PlayerID = TmpPC.GetPlayerIDHash();
+    Super.ShowPanel(bShow);
 	if (bShow)
+    {
 		InitGRI();
+
+        // TODO: Enable/Disable buttons if a AdminAndSpecialPlayers is enabled, and check if PC is a special player
+        if(class'KFServerTools'.default.bAdminAndSelectPlayers)
+        {
+            if (!class'KFServerTools'.static.isSpecial(i, PlayerID))
+                b_KFButtons[0].DisableMe();
+        }
+    }
 }
 
 function string GetSizingCaption() {
@@ -72,16 +86,6 @@ function InitGRI() {
 
 	bInit = False;
 	bNetGame = PC.Level.NetMode != NM_StandAlone;
-	if (bNetGame)
-		b_KFButtons[6].Caption = LeaveMPButtonText;
-	else
-		b_KFButtons[6].Caption = LeaveSPButtonText;
-
-	if (PC.PlayerReplicationInfo.bOnlySpectator)
-		b_KFButtons[5].Caption = JoinGameButtonText;
-	else
-		b_KFButtons[5].Caption = SpectateButtonText;
-
 	SetupGroups();
 }
 
@@ -104,28 +108,6 @@ function SetupGroups() {
 	local PlayerController PC;
 
 	PC = PlayerOwner();
-	if (PC.Level.NetMode != NM_Client) {
-		RemoveComponent(b_KFButtons[2]);
-		RemoveComponent(b_KFButtons[1]);
-	}
-	else if (CurrentServerIsInFavorites())
-		DisableComponent(b_KFButtons[2]);
-
-	if (PC.Level.NetMode == NM_StandAlone) {
-		RemoveComponent(b_KFButtons[3], True);
-		RemoveComponent(b_KFButtons[4], True);
-	}
-	else if (PC.VoteReplicationInfo != None) {
-		if (!PC.VoteReplicationInfo.MapVoteEnabled())
-			RemoveComponent(b_KFButtons[3], True);
-
-		if (!PC.VoteReplicationInfo.KickVoteEnabled())
-			RemoveComponent(b_KFButtons[4]);
-	}
-	else {
-		RemoveComponent(b_KFButtons[3]);
-		RemoveComponent(b_KFButtons[4]);
-	}
 
 	RemapComponents();
 }
@@ -179,62 +161,37 @@ function SetButtonPositions() {
 	}
 }
 
-function bool CurrentServerIsInFavorites() {
-	local ExtendedConsole.ServerFavorite Fav;
-	local string Address, PortString;
-
-	if (PlayerOwner() == None)
-		return true;
-
-	Address = PlayerOwner().GetServerNetworkAddress();
-	if (Address == "")
-		return true;
-
-	if (Divide(Address, ":", Fav.IP, PortString))
-		Fav.Port = int(PortString);
-	else
-		Fav.IP = Address;
-
-	return class'ExtendedConsole'.static.InFavorites(Fav);
-}
-
 function bool ButtonClicked(GUIComponent Sender) {
 	local PlayerController PC;
-	local KFGUIController GC;
 
-	GC = KFGUIController(Controller);
 	PC = PlayerOwner();
-	if (GC == None || PC == None)
-		return false;
+	if (PC == None)
+        return false;
 
 	if (Sender == b_KFButtons[0])
-		GC.OpenMenu(GC.GetSettingsPage());
-	else if (Sender == b_KFButtons[1])
-		GC.OpenMenu("KFGUI.KFServerBrowser");
-	else if (Sender == b_KFButtons[6]) {
-		PC.ConsoleCommand("DISCONNECT");
-		GC.ReturnToMainMenu();
-	}
-	else if (Sender == b_KFButtons[2]) {
-		PC.ConsoleCommand("ADDCURRENTTOFAVORITES");
-		b_KFButtons[2].MenuStateChange(MSAT_Disabled);
-	}
-	else if (Sender == b_KFButtons[7])
-		GC.OpenMenu(GC.GetQuitPage());
-	else if (Sender == b_KFButtons[3])
-		GC.OpenMenu(GC.MapVotingMenu);
-	else if (Sender == b_KFButtons[4])
-		GC.OpenMenu(GC.KickVotingMenu);
-	else if (Sender == b_KFButtons[5]) {
-		GC.CloseMenu();
+    {
+        PC.ServerMutate(class'KFServerTools'.default.sSkipTraderCmd);
+        setTimer(7, false);
+    }
 
-		if (PC.PlayerReplicationInfo.bOnlySpectator)
-			PC.BecomeActivePlayer();
-		else
-			PC.BecomeSpectator();
-	}
+    if (Sender == b_KFButtons[1])
+    {
+        PC.ServerMutate(class'KFServerTools'.default.sVoteSkipTraderCmd);
+    }
+
+    // TODO: Add more mutate buttons (Change Default Trader time // Access for Admins Only)
+    // if (Sender == b_KFButtons[2])
+    // {
+    //     PC.ServerMutate(class'KFServerTools'.default.sSkipTraderCmd);
+    // }
 
 	return true;
+}
+
+// Timer to enable Skip trader button after it is clicked
+function Timer()
+{
+	b_KFButtons[0].EnableMe();
 }
 
 function bool InternalOnPreDraw(Canvas C) {
@@ -246,19 +203,20 @@ function bool InternalOnPreDraw(Canvas C) {
 			InitGRI();
 
 		SetButtonPositions();
-
-		if ((PlayerOwner().myHUD == None || !PlayerOwner().myHUD.IsInCinematic()) && GRI != None && GRI.bMatchHasBegun && !PlayerOwner().IsInState('GameEnded'))
-			EnableComponent(b_KFButtons[5]);
-		else
-			DisableComponent(b_KFButtons[5]);
 	}
 
 	return false;
 }
 
-defaultproperties {
-	Begin Object Class=GUIButton Name=SettingsButton
-		Caption="Settings"
+defaultproperties
+{
+
+    // TODO: Save button, Start Skip Vote Button, Force Skip Button, Change Trader Time Button
+    // On button click, send mutate with predefined messages
+
+    Begin Object Class=GUIButton Name=SkipTrader
+		Caption="Skip Trader"
+		Hint="Instantly skip trader; You might not have permission to use this !"
 		WinTop=0.878657
 		WinLeft=0.194420
 		WinWidth=0.147268
@@ -267,78 +225,31 @@ defaultproperties {
 		bBoundToParent=True
 		bScaleToParent=True
 		OnClick=STBlankPanel.ButtonClicked
-		OnKeyEvent=SettingsButton.InternalOnKeyEvent
+		OnKeyEvent=SkipTrader.InternalOnKeyEvent
 	End Object
-	b_KFButtons(0)=GUIButton'STBlankPanel.SettingsButton'
+	b_KFButtons(0)=GUIButton'STBlankPanel.SkipTrader'
 
-	Begin Object Class=GUIButton Name=BrowserButton
-		Caption="Server Browser"
+	Begin Object Class=GUIButton Name=VoteSkipTrader
+		Caption="Start Vote to Skip Trader"
+		Hint="Start a vote when you're ready to skip trader, everyone has access to this. Once clicked, a vote message will show for all players."
 		TabOrder=21
 		bBoundToParent=True
 		bScaleToParent=True
 		OnClick=STBlankPanel.ButtonClicked
-		OnKeyEvent=BrowserButton.InternalOnKeyEvent
+		OnKeyEvent=VoteSkipTrader.InternalOnKeyEvent
 	End Object
-	b_KFButtons(1)=GUIButton'STBlankPanel.BrowserButton'
+	b_KFButtons(1)=GUIButton'STBlankPanel.VoteSkipTrader'
 
-	Begin Object Class=GUIButton Name=FavoritesButton
-		Caption="Add to Favs"
-		Hint="Add this server to your Favorites"
-		TabOrder=22
-		bBoundToParent=True
-		bScaleToParent=True
-		OnClick=STBlankPanel.ButtonClicked
-		OnKeyEvent=FavoritesButton.InternalOnKeyEvent
-	End Object
-	b_KFButtons(2)=GUIButton'STBlankPanel.FavoritesButton'
-
-	Begin Object Class=GUIButton Name=MapVotingButton
-		Caption="Map Voting"
+    // TODO: Implement Revival Button
+	/*Begin Object Class=GUIButton Name=RevAllPlayers
+		Caption="Revive Dead Players"
+		Hint="Once clicked, you will revive all dead players for the cost of dosh; dosh will be taken from you."
 		TabOrder=23
 		OnClick=STBlankPanel.ButtonClicked
-		OnKeyEvent=MapVotingButton.InternalOnKeyEvent
+		OnKeyEvent=RevAllPlayers.InternalOnKeyEvent
 	End Object
-	b_KFButtons(3)=GUIButton'STBlankPanel.MapVotingButton'
+	b_KFButtons(2)=GUIButton'STBlankPanel.RevAllPlayers'*/
 
-	Begin Object Class=GUIButton Name=KickVotingButton
-		Caption="Kick Voting"
-		TabOrder=24
-		OnClick=STBlankPanel.ButtonClicked
-		OnKeyEvent=KickVotingButton.InternalOnKeyEvent
-	End Object
-	b_KFButtons(4)=GUIButton'STBlankPanel.KickVotingButton'
-
-	Begin Object Class=GUIButton Name=SpectateButton
-		Caption="Spectate"
-		TabOrder=25
-		OnClick=STBlankPanel.ButtonClicked
-		OnKeyEvent=SpectateButton.InternalOnKeyEvent
-	End Object
-	b_KFButtons(5)=GUIButton'STBlankPanel.SpectateButton'
-
-	Begin Object Class=GUIButton Name=LeaveMatchButton
-		TabOrder=26
-		bBoundToParent=True
-		bScaleToParent=True
-		OnClick=STBlankPanel.ButtonClicked
-		OnKeyEvent=LeaveMatchButton.InternalOnKeyEvent
-	End Object
-	b_KFButtons(6)=GUIButton'STBlankPanel.LeaveMatchButton'
-
-	Begin Object Class=GUIButton Name=QuitGameButton
-		Caption="Exit Game"
-		TabOrder=27
-		OnClick=STBlankPanel.ButtonClicked
-		OnKeyEvent=QuitGameButton.InternalOnKeyEvent
-	End Object
-	b_KFButtons(7)=GUIButton'STBlankPanel.QuitGameButton'
-
-	LeaveMPButtonText="Disconnect"
-	LeaveSPButtonText="Forfeit"
-	SpectateButtonText="Spectate"
-	JoinGameButtonText="Join"
-	KickPlayer="Kick "
-	BanPlayer="Ban "
 	PlayerStyleName="TextLabel"
 	PropagateVisibility=False
 	WinTop=0.125000

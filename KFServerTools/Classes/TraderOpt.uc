@@ -1,31 +1,42 @@
 class TraderOpt extends STBlankPanel;
 
+// TODO: All chechkboxes and settings in this section should be visible only to the admins
+// to do this, I need to create a new aAdmins array in the base class that holds admins only
+
 var automated GUISectionBackground i_BGCenter;
-var automated moCheckbox ch_AllowInterrupt;
+var automated moCheckbox ch_AdminsOnly;
+var automated moEditBox ed_DefaultTrader;
 
 function InitComponent(GUIController MyController, GUIComponent MyOwner) {
 	Super.Initcomponent(MyController, MyOwner);
 
-	i_BGCenter.ManageComponent(ch_AllowInterrupt);
-
+	i_BGCenter.ManageComponent(ch_AdminsOnly);
+	i_BGCenter.ManageComponent(ed_DefaultTrader);
 }
 
 function ShowPanel(bool bShow) {
 	Super.ShowPanel(bShow);
 
 	if (bShow) {
-		ch_AllowInterrupt.SetComponentValue(True, true);
-	}
+			ch_AdminsOnly.SetComponentValue(class'KFServerTools'.default.bAdminAndSelectPlayers, true);
+			ed_DefaultTrader.SetComponentValue(class'KFServerTools'.default.iDefaultTraderTime, true);
+		}
 }
 
 function UpdateCheckboxVisibility() {
-	if (ch_AllowInterrupt.IsChecked())
-		Log("CheckBox Updated!");
+	// if (ch_AdminsOnly.IsChecked())
+
+	if(class'KFServerTools'.default.bAdminAndSelectPlayers)
+		{
+			ch_AdminsOnly.DisableMe();
+			ed_DefaultTrader.DisableMe();
+		}
 }
 
 function bool InternalOnPreDraw(Canvas C) {
 	local float w, h, x, y;
 
+	// TODO: Change width and height
 	w = ActualWidth() / 2;
 	h = ActualHeight() / 2;
 	y = ActualTop() + ActualHeight() * 0.15;
@@ -39,8 +50,7 @@ function bool InternalOnPreDraw(Canvas C) {
 
 function InternalOnChange(GUIComponent Sender) {
 	switch (Sender) {
-		case ch_AllowInterrupt:
-			Log("Checkbox Checked!");
+		case ch_AdminsOnly:
 			UpdateCheckboxVisibility();
 			break;
 	}
@@ -54,12 +64,18 @@ defaultproperties {
 	End Object
 	i_BGCenter=GUISectionBackground'TraderOpt.BGCenter'
 
-	Begin Object Class=moCheckBox Name=AllowInterrupt
-		Caption="Start Trader Skip Vote"
-		Hint="Send a message to all players that you are ready to skip trader, and tells them to skip whenever they are ready"
-		OnCreateComponent=AllowInterrupt.InternalOnCreateComponent
+	Begin Object Class=moCheckBox Name=AdminsOnly
+		Caption="Admins & Special Players Only"
+		Hint="If enabled, only admins & special players can manipulate trader !"
+		OnCreateComponent=AdminsOnly.InternalOnCreateComponent
 		TabOrder=0
 		OnChange=TraderOpt.InternalOnChange
 	End Object
-	ch_AllowInterrupt=moCheckBox'TraderOpt.AllowInterrupt'
+	ch_AdminsOnly=moCheckBox'TraderOpt.AdminsOnly'
+
+	Begin Object Class=moEditBox Name=DefaultTraderTime
+		Caption="Default Trader Time: "
+		Hint="Enter new value for trader time. Must be between <6-255>"
+	End Object
+	ed_DefaultTrader=DefaultTraderTime
 }

@@ -19,6 +19,7 @@ var string SkipTraderCmd, VoteSkipTraderCmd, CurrentTraderTimeCmd, CustomTraderT
 var KFGameType KFGT;
 var array<string> aPlayerIDs;
 var class<Object> STMenuType;
+var KFServerTools Mut;
 
 // Players to be marked as either VIP or Donator
 struct SP
@@ -39,7 +40,7 @@ struct ColorRecord
 var() config array<ColorRecord> ColorList; // Color list
 
 // Initialization
-function PreBeginPlay()
+function PostBeginPlay()
 {
 	local int i;
 
@@ -58,8 +59,9 @@ function PreBeginPlay()
 	ReviveCost = iReviveCost;
 	DefaultTraderTime = iDefaultTraderTime;
 	KFGT = KFGameType(Level.Game);
-	// Edit ServerPerks' ESC-Menu
-	KFGT.LoginMenuClass = string(STMenuType);
+
+	// Add Server Tools tab to ESC-Menu
+	InjectNewMenu(STMenuType);
 
 	if(KFGT == none)
 	{
@@ -96,6 +98,19 @@ function PreBeginPlay()
 		KFGT.TimeBetweenWaves = DefaultTraderTime;
 	}
 }
+
+
+// Test Tick
+function Tick(float Deltatime)
+{
+	// Pointer To self
+    Mut = self;
+    default.Mut = self;
+	class'KFServerTools'.default.Mut = self;
+	Disable('Tick');
+}
+
+// TODO: Add Debugging in almost all functions
 
 // Timer to change default trader time
 function Timer()
@@ -355,11 +370,6 @@ function bool StartSkipVote(PlayerController TmpPC)
 		}
 }
 
-// TODO: Add Trader config in ESC-Menu, request from MADMAX
-// This should work similar to ReloadOptionsMut
-
-// TODO: Add Debugging in almost all functions
-
 // Allow players to revive themselves if they have enough do$h!
 function bool FuckingReviveMeCmd(PlayerController TmpPC)
 {
@@ -593,6 +603,30 @@ final function bool FindSteamID(out int i, string ID)
     return false;
 }
 
+// Matches SteamIDs for each player, alt version
+final function bool isSpecial(string ID)
+{
+	local int i;
+
+    for(i=0; i<SpecialPlayers.Length; i++){
+        if (ID == SpecialPlayers[i].SteamID){
+            return true;
+        }
+    }
+    return false;
+}
+
+// Edit ESC-Menu to inject new Trader Opt. Menu
+final function InjectNewMenu(class<Object> MenuName)
+{
+	local PlayerController TmpPC;
+
+	KFGT.LoginMenuClass = string(MenuName);
+
+	ForEach DynamicActors(class'PlayerController', TmpPC)
+		TmpPC.MidGameMenuClass = "STInvasionLoginMenu";
+}
+
 // Print all 'dead' player names + IDs for revival message
 final function WhoTheFuckIsDead(PlayerController TmpPC)
 {
@@ -733,8 +767,7 @@ defaultproperties
 	RemoteRole=ROLE_SimulatedProxy
 	bAlwaysRelevant=true
 
-
-	// Edit ServerPerks' HELP ESC-Menu Tab
+	// Inject new ESC-Menu Tab
 	STMenuType=class'STInvasionLoginMenu'
 
 	// Mut Vars
