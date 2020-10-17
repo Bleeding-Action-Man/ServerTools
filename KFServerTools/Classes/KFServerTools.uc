@@ -349,9 +349,6 @@ function bool StartSkipVote(PlayerController TmpPC)
 		}
 }
 
-// TODO: Timer to reset Votes (aPlayerIDs.length = 0) if a new wave starts
-// Trigger it on every wave start, delayed by mutate tt, st or skip
-
 // TODO: Add Trader config in ESC-Menu, request from MADMAX
 // This should work similar to ReloadOptionsMut
 
@@ -725,7 +722,7 @@ defaultproperties
 	// Mandatory Vars
 	GroupName = "KF-ServerTools"
     FriendlyName = "Server Tools - v1.6"
-    Description = "Collection of cool features to empower your server; Made by Vel-San;"
+    Description = "Collection of cool features to empower your server; Made by Vel-San"
 
 	// Mut Vars
 	bDebug = False
