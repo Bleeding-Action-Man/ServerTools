@@ -18,6 +18,7 @@ var int DefaultTraderTime, ReviveCost;
 var string SkipTraderCmd, VoteSkipTraderCmd, CurrentTraderTimeCmd, CustomTraderTimeCmd, ReviveListCmd, ReviveMeCmd, ReviveThemCmd;
 var KFGameType KFGT;
 var array<string> aPlayerIDs;
+var class<Object> STMenuType;
 
 // Players to be marked as either VIP or Donator
 struct SP
@@ -57,6 +58,8 @@ function PreBeginPlay()
 	ReviveCost = iReviveCost;
 	DefaultTraderTime = iDefaultTraderTime;
 	KFGT = KFGameType(Level.Game);
+	// Edit ServerPerks' ESC-Menu
+	KFGT.LoginMenuClass = string(STMenuType);
 
 	if(KFGT == none)
 	{
@@ -68,6 +71,9 @@ function PreBeginPlay()
 	{
     SpecialPlayers[i] = aSpecialPlayers[i];
   	}
+
+	// Generate config in case there is no .ini file
+	// SaveConfig();
 
 	if(Debug)
 	{
@@ -721,8 +727,15 @@ defaultproperties
 {
 	// Mandatory Vars
 	GroupName = "KF-ServerTools"
-    FriendlyName = "Server Tools - v1.6"
+    FriendlyName = "Server Tools - v1.7"
     Description = "Collection of cool features to empower your server; Made by Vel-San"
+	bAddToServerPackages=true
+	RemoteRole=ROLE_SimulatedProxy
+	bAlwaysRelevant=true
+
+
+	// Edit ServerPerks' HELP ESC-Menu Tab
+	STMenuType=class'STInvasionLoginMenu'
 
 	// Mut Vars
 	bDebug = False
@@ -740,4 +753,14 @@ defaultproperties
 	// SpecialPlayers Array Example
 	// Only SteamID is important, PName is just to easily read & track the IDs
 	// aSpecialPlayers=(PName="Vel-San",steamID="76561198122568951")
+
+	// Colors list | Do not edit the tags AT ALL COSTS | Better leave this untouched at all times
+	ColorList(0)=(ColorName="Red",ColorTag="%r",Color=(B=0,G=0,R=200,A=0))
+	ColorList(1)=(ColorName="Orange",ColorTag="%o",Color=(B=0,G=127,R=255,A=0))
+	ColorList(2)=(ColorName="Yellow",ColorTag="%y",Color=(B=0,G=255,R=255,A=0))
+	ColorList(3)=(ColorName="Green",ColorTag="%g",Color=(B=0,G=200,R=0,A=0))
+	ColorList(4)=(ColorName="Blue",ColorTag="%b",Color=(B=200,G=100,R=0,A=0))
+	ColorList(5)=(ColorName="Teal",ColorTag="%t",Color=(B=113,G=179,R=60,A=0))
+	ColorList(6)=(ColorName="Violet",ColorTag="%v",Color=(B=139,G=0,R=255,A=0))
+	ColorList(7)=(ColorName="White",ColorTag="%w",Color=(B=200,G=200,R=200,A=0))
 }
