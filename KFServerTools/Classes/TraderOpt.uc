@@ -1,4 +1,4 @@
-class STTab_TraderOpt extends STBlankPanel;
+class TraderOpt extends STBlankPanel;
 
 var automated GUISectionBackground i_BGCenter;
 var automated moCheckbox ch_AllowInterrupt;
@@ -52,14 +52,14 @@ defaultproperties {
 		Caption="Server Tools"
 		OnPreDraw=BGCenter.InternalPreDraw
 	End Object
-	i_BGCenter=GUISectionBackground'STTab_TraderOpt.BGCenter'
+	i_BGCenter=GUISectionBackground'TraderOpt.BGCenter'
 
 	Begin Object Class=moCheckBox Name=AllowInterrupt
 		Caption="Start Trader Skip Vote"
 		Hint="Send a message to all players that you are ready to skip trader, and tells them to skip whenever they are ready"
 		OnCreateComponent=AllowInterrupt.InternalOnCreateComponent
 		TabOrder=0
-		OnChange=STTab_TraderOpt.InternalOnChange
+		OnChange=TraderOpt.InternalOnChange
 	End Object
-	ch_AllowInterrupt=moCheckBox'STTab_TraderOpt.AllowInterrupt'
+	ch_AllowInterrupt=moCheckBox'TraderOpt.AllowInterrupt'
 }
