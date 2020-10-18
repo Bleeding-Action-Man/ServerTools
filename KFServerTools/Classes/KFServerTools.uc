@@ -113,6 +113,9 @@ function Timer()
 	if(Debug)
     	MutLog("-----|| DEBUG - New wave started | Trader Skip Votes reset ||-----");
 
+	// Notify Players that a new vote should be placed
+	CriticalServerMessage("%wTrader Skip votes have been %greset%w. You can start a %bnew%w vote now!");
+
 	// Reset the Votes array after trader is done
 	aPlayerIDs.length = 0;
 	IsTimerActive = false;
@@ -134,6 +137,21 @@ function ServerMessage(string Msg)
 		{
 			SetColor(Msg);
 			PC.ClientMessage(Msg);
+		}
+	}
+}
+
+function CriticalServerMessage(string Msg)
+{
+	local Controller C;
+	local PlayerController PC;
+	for (C = Level.ControllerList; C != none; C = C.nextController)
+	{
+		PC = PlayerController(C);
+		if (PC != none)
+		{
+			SetColor(Msg);
+			PC.ClientMessage(Msg, 'CriticalEvent');
 		}
 	}
 }
@@ -285,7 +303,10 @@ function Mutate(string command, PlayerController Sender)
 			return;
 		}
 		KFGT.TimeBetweenWaves = int(SplitCMD[1]);
+		iDefaultTraderTime = int(SplitCMD[1]);
 		default.iDefaultTraderTime = int(SplitCMD[1]);
+		DefaultTraderTime = int(SplitCMD[1]);
+		default.DefaultTraderTime = int(SplitCMD[1]);
 		ServerMessage("%t" $PN$ " %wchanged the trader time between waves to %t" $string(int(SplitCMD[1]))$ " %wseconds.");
 
 	}
@@ -354,7 +375,8 @@ function bool StartSkipVote(PlayerController TmpPC)
 			// Reset aPlayerIDs to 0 if once a new wave starts
 			if(IsTimerActive == false)
 			{
-				SetTimer( KFGT.WaveCountDown, false);
+				CriticalServerMessage("%wCollecting votes to %bSkip Trader%w - Votes collected will reset in %r30 %wseconds!");
+				SetTimer( 30, false);
 				IsTimerActive = true;
 			}
 		}
@@ -363,7 +385,7 @@ function bool StartSkipVote(PlayerController TmpPC)
 			Disable('Timer');
 			IsTimerActive = false;
 			if(Debug)
-    			MutLog("-----|| DEBUG - New wave started | Trader Skip Votes reset | Timer Disabled ||-----");
+    			MutLog("-----|| DEBUG - All votes have been collected to skip trader | Timer Disabled ||-----");
 			KFGT.WaveCountDown = 6;
 			aPlayerIDs.length = 0;
 			return true;
@@ -690,11 +712,15 @@ function int GetActualPlayers()
   	for( C=Level.ControllerList; C!=None; C=C.NextController )
   	{
   	  PRI = C.PlayerReplicationInfo;
-  	  if( (PRI != None) && !PRI.bBot && MessagingSpectator(C) == None )
+  	  if( (PRI != None) && !PRI.bBot && MessagingSpectator(C) == None && !PRI.bOnlySpectator && !PRI.bIsSpectator)
   	  {
   	    i++;
   	  }
   	}
+	if(Debug)
+	{
+		MutLog("-----|| DEBUG - Actual Players Count: " $i$ " ||-----");
+	}
   	return i;
 }
 
@@ -748,7 +774,7 @@ defaultproperties
 {
 	// Mandatory Vars
 	GroupName = "KF-ServerTools"
-    FriendlyName = "Server Tools - v1.7"
+    FriendlyName = "Server Tools - v1.8b"
     Description = "Collection of cool features to empower your server; Made by Vel-San"
 	bAddToServerPackages=true
 	RemoteRole=ROLE_SimulatedProxy

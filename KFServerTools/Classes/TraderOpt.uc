@@ -22,7 +22,7 @@ function ShowPanel(bool bShow) {
 	if (bShow) {
 			ed_DefaultTrader.SetComponentValue(class'KFServerTools'.default.iDefaultTraderTime, true);
 			if (class'KFServerTools'.default.bAdminAndSelectPlayers)
-				ed_DefaultTrader.Caption = AdminsOnlyText;
+				b_ApplyButton.Caption = AdminsOnlyText;
 		}
 }
 
@@ -30,11 +30,9 @@ function UpdateTraderTime(PlayerController TmpPC) {
 
 	local string Cmd;
 
-	if (int(ed_DefaultTrader.GetComponentValue()) != class'KFServerTools'.default.iDefaultTraderTime)
-	{
-		cmd = class'KFServerTools'.default.sCustomTraderTimeCmd$ " " $ed_DefaultTrader.GetComponentValue();
-		TmpPC.ServerMutate(cmd);
-	}
+	cmd = class'KFServerTools'.default.sCustomTraderTimeCmd$ " " $ed_DefaultTrader.GetComponentValue();
+	TmpPC.ServerMutate(cmd);
+
 }
 
 function bool InternalOnPreDraw(Canvas C) {
@@ -81,7 +79,7 @@ defaultproperties {
 
 	Begin Object Class=GUIButton Name=Apply
 		Caption="Apply"
-		Hint="Apply new default trader time"
+		Hint="Apply new default trader time; You might not have permission for this!"
 		TabOrder=1
 		bBoundToParent=True
 		bScaleToParent=True
@@ -90,5 +88,5 @@ defaultproperties {
 	End Object
 	b_ApplyButton=GUIButton'TraderOpt.Apply'
 
-	AdminsOnlyText = "Default Trader Time (Admins Only): "
+	AdminsOnlyText = "Apply | Admins Only"
 }

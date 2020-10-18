@@ -75,7 +75,7 @@ function InitGRI() {
 	bInit = False;
 	bNetGame = PC.Level.NetMode != NM_StandAlone;
 	if (class'KFServerTools'.default.bAdminAndSelectPlayers)
-		b_KFButtons[0].Caption = SkipForAdminsOnly;
+			b_KFButtons[0].Caption = SkipForAdminsOnly;
 	SetupGroups();
 }
 
@@ -202,7 +202,7 @@ defaultproperties
 		Hint="Instantly skip trader; You might not have permission to use this !"
 		WinTop=0.878657
 		WinLeft=0.194420
-		WinWidth=0.147
+		WinWidth=0.8
 		WinHeight=0.048769
 		TabOrder=20
 		bBoundToParent=True
@@ -234,7 +234,7 @@ defaultproperties
 	b_KFButtons(2)=GUIButton'STBlankPanel.RevAllPlayers'*/
 
 	PlayerStyleName="TextLabel"
-	SkipForAdminsOnly="Skip Trader (Admins Only)"
+	SkipForAdminsOnly="Skip Trader | Admins Only"
 	PropagateVisibility=False
 	WinTop=0.125000
 	WinLeft=0.250000
