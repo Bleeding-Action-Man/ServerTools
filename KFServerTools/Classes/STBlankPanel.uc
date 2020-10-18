@@ -153,10 +153,12 @@ function SetButtonPositions() {
 
 function bool ButtonClicked(GUIComponent Sender) {
 	local PlayerController PC;
+	local string Cmd;
 
 	PC = PlayerOwner();
 	if (PC == None)
         return false;
+
 
 	if (Sender == b_KFButtons[0])
     {
@@ -168,11 +170,17 @@ function bool ButtonClicked(GUIComponent Sender) {
         PC.ServerMutate(class'KFServerTools'.default.sVoteSkipTraderCmd);
     }
 
-    // TODO: Add more mutate buttons (Change Default Trader time // Access for Admins Only)
-    // if (Sender == b_KFButtons[2])
-    // {
-    //     PC.ServerMutate(class'KFServerTools'.default.sSkipTraderCmd);
-    // }
+	if (Sender == b_KFButtons[2])
+    {
+		cmd = class'KFServerTools'.default.sReviveThemCmd$ " all";
+        PC.ServerMutate(cmd);
+    }
+
+	if (Sender == b_KFButtons[3])
+    {
+		cmd = "st help";
+        PC.ServerMutate(cmd);
+    }
 
 	return true;
 }
@@ -193,9 +201,6 @@ function bool InternalOnPreDraw(Canvas C) {
 
 defaultproperties
 {
-
-    // TODO: Save button, Start Skip Vote Button, Force Skip Button, Change Trader Time Button
-    // On button click, send mutate with predefined messages
 
     Begin Object Class=GUIButton Name=SkipTrader
 		Caption="Skip Trader"
@@ -223,15 +228,27 @@ defaultproperties
 	End Object
 	b_KFButtons(1)=GUIButton'STBlankPanel.VoteSkipTrader'
 
-    // TODO: Implement Revival Button
-	/*Begin Object Class=GUIButton Name=RevAllPlayers
-		Caption="Revive Dead Players"
-		Hint="Once clicked, you will revive all dead players for the cost of dosh; dosh will be taken from you."
-		TabOrder=23
+	Begin Object Class=GUIButton Name=RevAllPlayers
+		Caption="Revive All Dead Players"
+		Hint="Once clicked, you will revive all dead players for the cost of Dosh; dosh will be taken from you."
+		TabOrder=22
+		bBoundToParent=True
+		bScaleToParent=True
 		OnClick=STBlankPanel.ButtonClicked
 		OnKeyEvent=RevAllPlayers.InternalOnKeyEvent
 	End Object
-	b_KFButtons(2)=GUIButton'STBlankPanel.RevAllPlayers'*/
+	b_KFButtons(2)=GUIButton'STBlankPanel.RevAllPlayers'
+
+	Begin Object Class=GUIButton Name=AllCommands
+		Caption="Help"
+		Hint="Print a list of all mutate commands | Commands are used in console, not in chat!"
+		TabOrder=23
+		bBoundToParent=True
+		bScaleToParent=True
+		OnClick=STBlankPanel.ButtonClicked
+		OnKeyEvent=AllCommands.InternalOnKeyEvent
+	End Object
+	b_KFButtons(3)=GUIButton'STBlankPanel.AllCommands'
 
 	PlayerStyleName="TextLabel"
 	SkipForAdminsOnly="Skip Trader | Admins Only"

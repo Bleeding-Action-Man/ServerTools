@@ -161,7 +161,7 @@ function Mutate(string command, PlayerController Sender)
 	local string PN, PID;
 	local string WelcomeMSG, AdminsAndSPsMSG, DefaultTraderTimeMSG, SkipTraderMSG, VoteSkipTraderMSG, CurrentTraderTimeMSG, CustomTraderTimeMSG,
 				MSG1, MSG2, MSG3,
-				ReviveMeMSG, ReviveListMSG, ReviveThemMSG;
+				ReviveMeMSG, ReviveListMSG, ReviveThemMSG, WarningMSG;
 	local array<string> SplitCMD;
 	local int num, i;
 
@@ -236,22 +236,19 @@ function Mutate(string command, PlayerController Sender)
 
 	if(Left(command, Len(ReviveThemCmd)) ~= ReviveThemCmd)
 	{
-		ServerMessage("%t" $PN$ " %wis attempting to revive someone!");
+		// ServerMessage("%t" $PN$ " %wis attempting to revive someone!");
 		FuckingReviveThemCmd(Sender, SplitCMD[1]);
 		return;
 	}
 
 	if (AdminAndSelectPlayers)
 	{
-		if(FindSteamID(i, PID))
+		if(!FindSteamID(i, PID))
 		{
 			if (command ~= SkipTraderCmd || Left(command, Len(CurrentTraderTimeCmd)) ~= CurrentTraderTimeCmd || Left(command, Len(CustomTraderTimeCmd)) ~= CustomTraderTimeCmd)
-				ServerMessage("%t" $PN$ " %wis %gmodifying %wthe Trader!");
-		}
-		else
-		{
-			if (command ~= SkipTraderCmd || Left(command, Len(CurrentTraderTimeCmd)) ~= CurrentTraderTimeCmd || Left(command, Len(CustomTraderTimeCmd)) ~= CustomTraderTimeCmd)
-				ServerMessage("%rWarning %wto: %t" $PN$ "%w! You %rcannot %wmanipulate the trader! Only Special Players have permission.");
+				WarningMSG = "%rWarning %wto: %t" $PN$ "%w! You %rcannot %wmanipulate the trader! Only Special Players have permission.";
+				SetColor(WarningMSG);
+				Sender.ClientMessage(WarningMSG);
 			return;
 		}
 	}
@@ -774,7 +771,7 @@ defaultproperties
 {
 	// Mandatory Vars
 	GroupName = "KF-ServerTools"
-    FriendlyName = "Server Tools - v1.8b"
+    FriendlyName = "Server Tools - v1.0r"
     Description = "Collection of cool features to empower your server; Made by Vel-San"
 	bAddToServerPackages=true
 	RemoteRole=ROLE_SimulatedProxy
@@ -794,7 +791,7 @@ defaultproperties
 	sReviveMeCmd = "revme"
 	sReviveThemCmd = "rev"
 	iDefaultTraderTime = 60
-	iReviveCost = 250
+	iReviveCost = 300
 
 	// SpecialPlayers Array Example
 	// Only SteamID is important, PName is just to easily read & track the IDs
