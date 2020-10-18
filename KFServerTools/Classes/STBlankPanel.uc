@@ -1,10 +1,9 @@
 class STBlankPanel extends MidGamePanel;
 
 var automated array<GUIButton> b_KFButtons;
-local PlayerController TmpPC;
 
 var noexport bool bNetGame;
-var string PlayerStyleName;
+var string SkipForAdminsOnly, PlayerStyleName;
 var GUIStyles PlayerStyle;
 
 function InitComponent(GUIController MyController, GUIComponent MyOwner) {
@@ -42,18 +41,9 @@ function bool RemoveComponent(GUIComponent Comp, optional bool SkipRemap) {
 function ShowPanel(bool bShow) {
     Super.ShowPanel(bShow);
 
-    TmpPC = PlayerOwner();
-
 	if (bShow)
     {
 		InitGRI();
-
-        // TODO: Enable/Disable buttons if a AdminAndSpecialPlayers is enabled, and check if PC is a special player
-        if(class'KFServerTools'.default.bAdminAndSelectPlayers)
-        {
-            if (class'KFServerTools'.static.isSpecial(TmpPC) == false)
-                b_KFButtons[0].DisableMe();
-        }
     }
 }
 
@@ -84,6 +74,8 @@ function InitGRI() {
 
 	bInit = False;
 	bNetGame = PC.Level.NetMode != NM_StandAlone;
+	if (class'KFServerTools'.default.bAdminAndSelectPlayers)
+		b_KFButtons[0].Caption = SkipForAdminsOnly;
 	SetupGroups();
 }
 
@@ -169,7 +161,6 @@ function bool ButtonClicked(GUIComponent Sender) {
 	if (Sender == b_KFButtons[0])
     {
         PC.ServerMutate(class'KFServerTools'.default.sSkipTraderCmd);
-        setTimer(7, false);
     }
 
     if (Sender == b_KFButtons[1])
@@ -184,12 +175,6 @@ function bool ButtonClicked(GUIComponent Sender) {
     // }
 
 	return true;
-}
-
-// Timer to enable Skip trader button after it is clicked
-function Timer()
-{
-	b_KFButtons[0].EnableMe();
 }
 
 function bool InternalOnPreDraw(Canvas C) {
@@ -217,7 +202,7 @@ defaultproperties
 		Hint="Instantly skip trader; You might not have permission to use this !"
 		WinTop=0.878657
 		WinLeft=0.194420
-		WinWidth=0.147268
+		WinWidth=0.147
 		WinHeight=0.048769
 		TabOrder=20
 		bBoundToParent=True
@@ -249,6 +234,7 @@ defaultproperties
 	b_KFButtons(2)=GUIButton'STBlankPanel.RevAllPlayers'*/
 
 	PlayerStyleName="TextLabel"
+	SkipForAdminsOnly="Skip Trader (Admins Only)"
 	PropagateVisibility=False
 	WinTop=0.125000
 	WinLeft=0.250000

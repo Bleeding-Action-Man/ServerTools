@@ -4,33 +4,37 @@ class TraderOpt extends STBlankPanel;
 // to do this, I need to create a new aAdmins array in the base class that holds admins only
 
 var automated GUISectionBackground i_BGCenter;
-var automated moCheckbox ch_AdminsOnly;
 var automated moEditBox ed_DefaultTrader;
+var automated GUIButton b_ApplyButton;
+var string AdminsOnlyText;
 
 function InitComponent(GUIController MyController, GUIComponent MyOwner) {
 	Super.Initcomponent(MyController, MyOwner);
 
-	i_BGCenter.ManageComponent(ch_AdminsOnly);
 	i_BGCenter.ManageComponent(ed_DefaultTrader);
+	i_BGCenter.ManageComponent(b_ApplyButton);
+
 }
 
 function ShowPanel(bool bShow) {
 	Super.ShowPanel(bShow);
 
 	if (bShow) {
-			ch_AdminsOnly.SetComponentValue(class'KFServerTools'.default.bAdminAndSelectPlayers, true);
 			ed_DefaultTrader.SetComponentValue(class'KFServerTools'.default.iDefaultTraderTime, true);
+			if (class'KFServerTools'.default.bAdminAndSelectPlayers)
+				ed_DefaultTrader.Caption = AdminsOnlyText;
 		}
 }
 
-function UpdateCheckboxVisibility() {
-	// if (ch_AdminsOnly.IsChecked())
+function UpdateTraderTime(PlayerController TmpPC) {
 
-	if(class'KFServerTools'.default.bAdminAndSelectPlayers)
-		{
-			ch_AdminsOnly.DisableMe();
-			ed_DefaultTrader.DisableMe();
-		}
+	local string Cmd;
+
+	if (int(ed_DefaultTrader.GetComponentValue()) != class'KFServerTools'.default.iDefaultTraderTime)
+	{
+		cmd = class'KFServerTools'.default.sCustomTraderTimeCmd$ " " $ed_DefaultTrader.GetComponentValue();
+		TmpPC.ServerMutate(cmd);
+	}
 }
 
 function bool InternalOnPreDraw(Canvas C) {
@@ -43,17 +47,21 @@ function bool InternalOnPreDraw(Canvas C) {
 	x = ActualLeft() + (ActualWidth() - w) / 2;
 	i_BGCenter.SetPosition(x, y, w, h, true);
 
-	UpdateCheckboxVisibility();
-
 	return Super.InternalOnPreDraw(C);
 }
 
 function InternalOnChange(GUIComponent Sender) {
-	switch (Sender) {
-		case ch_AdminsOnly:
-			UpdateCheckboxVisibility();
-			break;
+
+}
+
+function bool ClickOfAButton(GUIComponent Sender) {
+	local PlayerController PC;
+
+	PC = PlayerOwner();
+	if (Sender == b_ApplyButton){
+		UpdateTraderTime(PC);
 	}
+	return true;
 }
 
 defaultproperties {
@@ -64,18 +72,23 @@ defaultproperties {
 	End Object
 	i_BGCenter=GUISectionBackground'TraderOpt.BGCenter'
 
-	Begin Object Class=moCheckBox Name=AdminsOnly
-		Caption="Admins & Special Players Only"
-		Hint="If enabled, only admins & special players can manipulate trader !"
-		OnCreateComponent=AdminsOnly.InternalOnCreateComponent
-		TabOrder=0
-		OnChange=TraderOpt.InternalOnChange
-	End Object
-	ch_AdminsOnly=moCheckBox'TraderOpt.AdminsOnly'
-
 	Begin Object Class=moEditBox Name=DefaultTraderTime
 		Caption="Default Trader Time: "
-		Hint="Enter new value for trader time. Must be between <6-255>"
+		Hint="Changes the default time for trader for the whole game; Must be between <6-255>"
+		TabOrder=0
 	End Object
 	ed_DefaultTrader=DefaultTraderTime
+
+	Begin Object Class=GUIButton Name=Apply
+		Caption="Apply"
+		Hint="Apply new default trader time"
+		TabOrder=1
+		bBoundToParent=True
+		bScaleToParent=True
+		OnClick=TraderOpt.ClickOfAButton
+		OnKeyEvent=Apply.InternalOnKeyEvent
+	End Object
+	b_ApplyButton=GUIButton'TraderOpt.Apply'
+
+	AdminsOnlyText = "Default Trader Time (Admins Only): "
 }

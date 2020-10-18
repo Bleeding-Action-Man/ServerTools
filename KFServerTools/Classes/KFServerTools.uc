@@ -150,9 +150,14 @@ function Mutate(string command, PlayerController Sender)
 	PN = Sender.PlayerReplicationInfo.PlayerName;
   	PID = Sender.GetPlayerIDHash();
 
+	if(Debug)
+	{
+		MutLog("-----|| DEBUG - '" $command$ "' accessed by: " $PN$ " | PID: " $PID$  " ||-----");
+	}
+
 	SplitStringToArray(SplitCMD, command, " ");
 
-	if(command ~= "st help" || command ~= "skiptrader help")
+	if(command ~= "st help" || command ~= "servertools help")
 	{
 		WelcomeMSG = "%yYou are viewing Server-Tools Help, below are the commands you can use:";
 		AdminsAndSPsMSG = "%oOnly Admins & Selected players can manipulate trader time! You can however use the %t" $VoteSkipTraderCmd$ " %ocommand";
@@ -163,7 +168,7 @@ function Mutate(string command, PlayerController Sender)
 		CustomTraderTimeMSG = "%w" $CustomTraderTimeCmd$ ": %gChange the default trader time. %wUsage: %tmutate " $CustomTraderTimeCmd$ " <6-255>";
 		ReviveMeMSG = "%w" $ReviveMeCmd$ ": %gRevive yourself if you have at least %v" $ReviveCost$ " %gDosh. %wUsage: %tmutate " $ReviveMeCmd;
 		ReviveListMSG = "%w" $ReviveListCmd$ ": %gShows a list of every dead player + their revive code. %wUsage: %tmutate " $ReviveListCmd;
-		ReviveThemMSG = "%w" $ReviveThemCmd$ ": %gRevive other players, if you are feeling kind enough ;p costs %v" $ReviveCost$ " %gDosh. %wUsage: %tmutate " $ReviveThemCmd$ " all %w/ %tmutate " $ReviveThemCmd$ " <Rev Code>";
+		ReviveThemMSG = "%w" $ReviveThemCmd$ ": %gRevive other players. Costs %v" $ReviveCost$ " %gDosh. %wUsage: %tmutate " $ReviveThemCmd$ " all %w/ %tmutate " $ReviveThemCmd$ " <Rev Code>";
 		SetColor(WelcomeMSG);
 		SetColor(DefaultTraderTimeMSG);
 		SetColor(SkipTraderMSG);
@@ -280,6 +285,7 @@ function Mutate(string command, PlayerController Sender)
 			return;
 		}
 		KFGT.TimeBetweenWaves = int(SplitCMD[1]);
+		default.iDefaultTraderTime = int(SplitCMD[1]);
 		ServerMessage("%t" $PN$ " %wchanged the trader time between waves to %t" $string(int(SplitCMD[1]))$ " %wseconds.");
 
 	}
@@ -344,7 +350,7 @@ function bool StartSkipVote(PlayerController TmpPC)
 		{
 			aPlayerIDs.Insert(0,1);
 			aPlayerIDs[0] = PlayerID;
-			ServerMessage("%t" $TmpPlayerName$ " %wis ready to skip trader / type in your console %bmutate " $VoteSkipTraderCmd$ " %wif you're also ready");
+			ServerMessage("%t" $TmpPlayerName$ " %wis ready to skip trader / type in your console %bmutate " $VoteSkipTraderCmd$ " %wif you're also ready, or vote from the ESC-Menu!");
 			// Reset aPlayerIDs to 0 if once a new wave starts
 			if(IsTimerActive == false)
 			{
@@ -597,29 +603,6 @@ final function bool FindSteamID(out int i, string ID)
     return false;
 }
 
-// Matches SteamIDs for each player, alt version
-static function bool isSpecial(PlayerController TmpPC)
-{
-	local int i;
-	local string PlayerName, PlayerID;
-
-	PlayerID = TmpPC.GetPlayerIDHash();
-    PlayerName = TmpPC.PlayerReplicationInfo.PlayerName;
-
-    Log("Player ID is: " $PlayerID$ " | Player Name: " $PlayerName);
-
-	if (PlayerID == "76561198122568951")
-        Log("STEAM IDs MATCH!");
-
-    for(i=0; i<default.aSpecialPlayers.Length; i++){
-		Log("PlayerID ["$i$"]: " $default.aSpecialPlayers[i].SteamID);
-        if (PlayerID == default.aSpecialPlayers[i].SteamID){
-            return true;
-        }
-    }
-    return false;
-}
-
 // Edit ESC-Menu to inject new Trader Opt. Menu
 final function InjectNewMenu(class<Object> MenuName)
 {
@@ -780,7 +763,7 @@ defaultproperties
     sSkipTraderCmd = "skip"
 	sVoteSkipTraderCmd = "voteskip"
     sCurrentTraderTimeCmd = "tt"
-    sCustomTraderTimeCmd = "st"
+    sCustomTraderTimeCmd = "ct"
 	sReviveListCmd = "dpl"
 	sReviveMeCmd = "revme"
 	sReviveThemCmd = "rev"
