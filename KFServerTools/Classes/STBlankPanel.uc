@@ -1,6 +1,8 @@
 class STBlankPanel extends MidGamePanel;
 
 var automated array<GUIButton> b_KFButtons;
+local PlayerController TmpPC;
+
 var noexport bool bNetGame;
 var string PlayerStyleName;
 var GUIStyles PlayerStyle;
@@ -38,14 +40,10 @@ function bool RemoveComponent(GUIComponent Comp, optional bool SkipRemap) {
 }
 
 function ShowPanel(bool bShow) {
-
-    local PlayerController TmpPC;
-    local string PlayerID;
-    local int i;
+    Super.ShowPanel(bShow);
 
     TmpPC = PlayerOwner();
-    PlayerID = TmpPC.GetPlayerIDHash();
-    Super.ShowPanel(bShow);
+
 	if (bShow)
     {
 		InitGRI();
@@ -53,7 +51,7 @@ function ShowPanel(bool bShow) {
         // TODO: Enable/Disable buttons if a AdminAndSpecialPlayers is enabled, and check if PC is a special player
         if(class'KFServerTools'.default.bAdminAndSelectPlayers)
         {
-            if (!class'KFServerTools'.static.isSpecial(i, PlayerID))
+            if (class'KFServerTools'.static.isSpecial(TmpPC) == false)
                 b_KFButtons[0].DisableMe();
         }
     }

@@ -44,6 +44,11 @@ function PostBeginPlay()
 {
 	local int i;
 
+	// Pointer To self
+    Mut = self;
+    default.Mut = self;
+	class'KFServerTools'.default.Mut = self;
+
 	// Tmp Vars Initialization | I don't like working directly with Config vars (>.<)
 	Debug = bDebug;
 	AdminAndSelectPlayers = bAdminAndSelectPlayers;
@@ -99,17 +104,6 @@ function PostBeginPlay()
 	}
 }
 
-
-// Test Tick
-function Tick(float Deltatime)
-{
-	// Pointer To self
-    Mut = self;
-    default.Mut = self;
-	class'KFServerTools'.default.Mut = self;
-	Disable('Tick');
-}
-
 // TODO: Add Debugging in almost all functions
 
 // Timer to change default trader time
@@ -160,7 +154,7 @@ function Mutate(string command, PlayerController Sender)
 
 	if(command ~= "st help" || command ~= "skiptrader help")
 	{
-		WelcomeMSG = "%yYou are viewing Server-Tools Mut Help, below are the commands you can use!";
+		WelcomeMSG = "%yYou are viewing Server-Tools Help, below are the commands you can use:";
 		AdminsAndSPsMSG = "%oOnly Admins & Selected players can manipulate trader time! You can however use the %t" $VoteSkipTraderCmd$ " %ocommand";
 		DefaultTraderTimeMSG = "%bCurrent default trader time: %w" $DefaultTraderTime;
 		SkipTraderMSG = "%w" $SkipTraderCmd$ ": %gSkip the current trader time. %wUsage: %tmutate " $SkipTraderCmd;
@@ -604,12 +598,22 @@ final function bool FindSteamID(out int i, string ID)
 }
 
 // Matches SteamIDs for each player, alt version
-final function bool isSpecial(string ID)
+static function bool isSpecial(PlayerController TmpPC)
 {
 	local int i;
+	local string PlayerName, PlayerID;
 
-    for(i=0; i<SpecialPlayers.Length; i++){
-        if (ID == SpecialPlayers[i].SteamID){
+	PlayerID = TmpPC.GetPlayerIDHash();
+    PlayerName = TmpPC.PlayerReplicationInfo.PlayerName;
+
+    Log("Player ID is: " $PlayerID$ " | Player Name: " $PlayerName);
+
+	if (PlayerID == "76561198122568951")
+        Log("STEAM IDs MATCH!");
+
+    for(i=0; i<default.aSpecialPlayers.Length; i++){
+		Log("PlayerID ["$i$"]: " $default.aSpecialPlayers[i].SteamID);
+        if (PlayerID == default.aSpecialPlayers[i].SteamID){
             return true;
         }
     }
