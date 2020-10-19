@@ -1,6 +1,6 @@
 Collection of cool features to empower your server:
 
-Completely reworked:
+[b]Completely reworked[/b]
 
 - Option to skip trader time instantly
 - Option to start a 'Skip Trader' vote collection
@@ -8,7 +8,7 @@ Completely reworked:
 - Option to change current trader time for current trader
 - Option to give only selected players access permission to the manipulate trader time commands (Voting is allowed for all)
 
-Completely new:
+[b]Completely new[/b]
 
 - Option for players to revive themselves by paying a Dosh fee
 - Option for players to revive their teammates by paying a Dosh fee
@@ -18,7 +18,7 @@ Completely new:
 - User friendly customization
 - Semi-ServerPerks support (in-code check, however, you need to replace 1 ServerPerks file with the one i provide you, because SP is overriding all ESC-Menu muts)
 
-This mut wouldn't be alive if it wasn't for/Credits to:
+[b]This mut wouldn't be alive if it wasn't for/Credits to[/b]
 
 - AdminMut
 - Trader Mut
@@ -86,7 +86,7 @@ bDebug=True
 
 Optional, if you have ServerPerks installed:
 
-- \Sysmte\ServerPerks.u
+- \System\ServerPerks.u
 
 [h1][b][u]Usage[/u][/b][/h1]
 
@@ -97,10 +97,10 @@ Optional, if you have ServerPerks installed:
 
 [i]If you have ServerPerks Installed[/i]
 
-Do steps 1, 2, 3, then change:
-
+- MANUALLY Download from below links
 - In KFServerTools.ini, 'bServerPerksCompatibility' to [b]TRUE[/b]
 - Replace your current ServerPerks.u with the one provided in the .zip
+- If you're hosting a server, you need to compress ServerPerks.u again
 
 [h1][b][u]Class Names[/u][/b][/h1]
 
@@ -110,4 +110,6 @@ Do steps 1, 2, 3, then change:
 
 You can find it under 'Whitelisted' folder named 'KF-KFServerTools-v1.0'
 
-MEGA Link: https://mega DOT nz/folder/YDoEmKiC#s6FGAtgh40-TvB4bHsLaMQ
+- MEGA Link: https://mega DOT nz/folder/YDoEmKiC#s6FGAtgh40-TvB4bHsLaMQ
+
+- Github: https://github.com/Vel-San/KF-ServerTools/releases
