@@ -172,11 +172,17 @@ function bool ButtonClicked(GUIComponent Sender) {
 
 	if (Sender == b_KFButtons[2])
     {
-		cmd = class'KFServerTools'.default.sReviveThemCmd$ " all";
+		cmd = class'KFServerTools'.default.sReviveMeCmd;
         PC.ServerMutate(cmd);
     }
 
 	if (Sender == b_KFButtons[3])
+    {
+		cmd = class'KFServerTools'.default.sReviveThemCmd$ " all";
+        PC.ServerMutate(cmd);
+    }
+
+	if (Sender == b_KFButtons[4])
     {
 		cmd = "st help";
         PC.ServerMutate(cmd);
@@ -228,27 +234,38 @@ defaultproperties
 	End Object
 	b_KFButtons(1)=GUIButton'STBlankPanel.VoteSkipTrader'
 
+	Begin Object Class=GUIButton Name=RevSelf
+		Caption="Revive Yourself"
+		Hint="Once clicked, you will revive for the cost of Dosh; dosh will be taken from you."
+		TabOrder=22
+		bBoundToParent=True
+		bScaleToParent=True
+		OnClick=STBlankPanel.ButtonClicked
+		OnKeyEvent=RevSelf.InternalOnKeyEvent
+	End Object
+	b_KFButtons(2)=GUIButton'STBlankPanel.RevSelf'
+
 	Begin Object Class=GUIButton Name=RevAllPlayers
 		Caption="Revive All Dead Players"
 		Hint="Once clicked, you will revive all dead players for the cost of Dosh; dosh will be taken from you."
-		TabOrder=22
+		TabOrder=23
 		bBoundToParent=True
 		bScaleToParent=True
 		OnClick=STBlankPanel.ButtonClicked
 		OnKeyEvent=RevAllPlayers.InternalOnKeyEvent
 	End Object
-	b_KFButtons(2)=GUIButton'STBlankPanel.RevAllPlayers'
+	b_KFButtons(3)=GUIButton'STBlankPanel.RevAllPlayers'
 
 	Begin Object Class=GUIButton Name=AllCommands
 		Caption="Help"
 		Hint="Print a list of all mutate commands | Commands are used in console, not in chat!"
-		TabOrder=23
+		TabOrder=24
 		bBoundToParent=True
 		bScaleToParent=True
 		OnClick=STBlankPanel.ButtonClicked
 		OnKeyEvent=AllCommands.InternalOnKeyEvent
 	End Object
-	b_KFButtons(3)=GUIButton'STBlankPanel.AllCommands'
+	b_KFButtons(4)=GUIButton'STBlankPanel.AllCommands'
 
 	PlayerStyleName="TextLabel"
 	SkipForAdminsOnly="Skip Trader | Admins Only"

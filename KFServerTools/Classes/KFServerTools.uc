@@ -783,7 +783,7 @@ defaultproperties
 {
 	// Mandatory Vars
 	GroupName = "KF-ServerTools"
-    FriendlyName = "Server Tools - v1.0r"
+    FriendlyName = "Server Tools - v1.0"
     Description = "Collection of cool features to empower your server; Made by Vel-San"
 	bAddToServerPackages=true
 	RemoteRole=ROLE_SimulatedProxy
