@@ -13,6 +13,7 @@ Collection of cool features to empower your server:
 - Instantly skip trader (Or start a skip-vote) from ESC-Menu, totally new tab! (~~Coming Soon~~) Done as of v1.8b+
 - Global notifications to improve user experience
 - User friendly customization
+- Semi-ServerPerks support
 
 This mut wouldn't be alive if it wasn't for/Credits to:
 

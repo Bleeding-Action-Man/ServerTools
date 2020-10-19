@@ -8,12 +8,12 @@
 class KFServerTools extends Mutator Config(KFServerTools);
 
 // Config Vars
-var() config bool bDebug, bAdminAndSelectPlayers;
+var() config bool bDebug, bAdminAndSelectPlayers, bServerPerksCompatibility;
 var() config string sSkipTraderCmd, sVoteSkipTraderCmd, sCurrentTraderTimeCmd, sCustomTraderTimeCmd, sReviveListCmd, sReviveMeCmd, sReviveThemCmd;
 var() config int iDefaultTraderTime, iReviveCost;
 
 // Tmp Vars
-var bool Debug, AdminAndSelectPlayers, VoteInProgress, IsTimerActive;
+var bool Debug, AdminAndSelectPlayers, ServerPerksCompatibility, VoteInProgress, IsTimerActive;
 var int DefaultTraderTime, ReviveCost;
 var string SkipTraderCmd, VoteSkipTraderCmd, CurrentTraderTimeCmd, CustomTraderTimeCmd, ReviveListCmd, ReviveMeCmd, ReviveThemCmd;
 var KFGameType KFGT;
@@ -52,6 +52,7 @@ function PostBeginPlay()
 	// Tmp Vars Initialization | I don't like working directly with Config vars (>.<)
 	Debug = bDebug;
 	AdminAndSelectPlayers = bAdminAndSelectPlayers;
+	ServerPerksCompatibility = bServerPerksCompatibility;
 	VoteInProgress = false;
 	IsTimerActive = false;
 	SkipTraderCmd = sSkipTraderCmd;
@@ -66,7 +67,10 @@ function PostBeginPlay()
 	KFGT = KFGameType(Level.Game);
 
 	// Add Server Tools tab to ESC-Menu
-	InjectNewMenu(STMenuType);
+	if(!ServerPerksCompatibility)
+	{
+		InjectNewMenu(STMenuType);
+	}
 
 	if(KFGT == none)
 	{
@@ -284,7 +288,7 @@ function Mutate(string command, PlayerController Sender)
 			KFGT.WaveCountDown = num;
 			ServerMessage("%t" $PN$ " %wchanged the current trader time to %t" $string(num)$ " %wseconds.");
 		} else {
-			MSG2 = "%t" $PN$ "%w, %t" $CurrentTraderTimeCmd$ " %wis only functional during trader time.";
+			MSG2 = "%b" $PN$ "%w, %t" $CurrentTraderTimeCmd$ " %wis only functional during trader time.";
 			SetColor(MSG2);
      		Sender.ClientMessage(MSG2);
 		}
@@ -487,6 +491,14 @@ function bool FuckingReviveThemCmd(PlayerController TmpPC, string PlayerToRevive
 		return false;
 	}
 
+	if (PlayerToReviveCodeMATCH == "")
+	{
+		NotFoundMSG = "%wRevive %bCode %wcannot be empty. Click on '%oShow Player Codes%w' for better info!";
+		SetColor(NotFoundMSG);
+		TmpPC.ClientMessage(NotFoundMSG);
+		return false;
+	}
+
 	for( C = Level.ControllerList; C != None; C = C.nextController )
 	{
 		if( C.IsA('PlayerController') && PlayerController(C).PlayerReplicationInfo.PlayerID != 0)
@@ -506,7 +518,7 @@ function bool FuckingReviveThemCmd(PlayerController TmpPC, string PlayerToRevive
 					// Check if they have enough dosh
 					if (dosh < ReviveCost)
 					{
-						PoorMSG = "%wYou do not have enough dosh! You need %t" $ReviveCost$ " %wDo$h for a revive";
+						PoorMSG = "%wYou do not have enough dosh to revive %o" $PlayerToReviveNAME$ "%w! You need %t" $ReviveCost$ " %wDo$h for a revive";
 						SetColor(PoorMSG);
 						TmpPC.ClientMessage(PoorMSG);
 						return false;
@@ -524,7 +536,7 @@ function bool FuckingReviveThemCmd(PlayerController TmpPC, string PlayerToRevive
 			else
 			{
 				isPlayerFound = InStr( Caps(PlayerToReviveCode), Caps(PlayerToReviveCodeMATCH));
-				if (isPlayerFound >=0)
+				if (isPlayerFound >= 0)
 				{
 					// If player being revived is already alive
 					if (bIsAlive == false)
@@ -538,7 +550,7 @@ function bool FuckingReviveThemCmd(PlayerController TmpPC, string PlayerToRevive
 					// Check if they have enough dosh
 					if (dosh < ReviveCost)
 					{
-						PoorMSG = "%wYou do not have enough dosh! You need %t" $ReviveCost$ " %wDo$h for a revive";
+						PoorMSG = "%wYou don't have enough dosh to revive %o" $PlayerToReviveNAME$ "%w! You need %t" $ReviveCost$ " %wDo$h for a revive";
 						SetColor(PoorMSG);
 						TmpPC.ClientMessage(PoorMSG);
 						return false;
@@ -783,6 +795,7 @@ defaultproperties
 	// Mut Vars
 	bDebug = False
 	bAdminAndSelectPlayers = True
+	bServerPerksCompatibility = False
     sSkipTraderCmd = "skip"
 	sVoteSkipTraderCmd = "voteskip"
     sCurrentTraderTimeCmd = "tt"

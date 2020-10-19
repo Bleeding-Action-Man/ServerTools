@@ -205,7 +205,7 @@ defaultproperties
     Begin Object Class=GUIButton Name=SkipTrader
 		Caption="Skip Trader"
 		Hint="Instantly skip trader; You might not have permission to use this !"
-		WinTop=0.878657
+		WinTop=0.828657
 		WinLeft=0.194420
 		WinWidth=0.8
 		WinHeight=0.048769
