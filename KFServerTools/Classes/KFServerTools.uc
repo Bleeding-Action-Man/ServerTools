@@ -190,7 +190,7 @@ function Mutate(string command, PlayerController Sender)
 		CurrentTraderTimeMSG = "%w" $CurrentTraderTimeCmd$ ": %gChange the current trade time of this wave. %wUsage: %tmutate " $CurrentTraderTimeCmd$ " <6-255>";
 		CustomTraderTimeMSG = "%w" $CustomTraderTimeCmd$ ": %gChange the default trader time. %wUsage: %tmutate " $CustomTraderTimeCmd$ " <6-255>";
 		ReviveMeMSG = "%w" $ReviveMeCmd$ ": %gRevive yourself if you have at least %v" $ReviveCost$ " %gDosh. %wUsage: %tmutate " $ReviveMeCmd;
-		ReviveListMSG = "%w" $ReviveListCmd$ ": %gShows a list of every dead player + their revive code. %wUsage: %tmutate " $ReviveListCmd;
+		ReviveListMSG = "%w" $ReviveListCmd$ ": %gShows a list of every player + their revive code. %wUsage: %tmutate " $ReviveListCmd;
 		ReviveThemMSG = "%w" $ReviveThemCmd$ ": %gRevive other players. Costs %v" $ReviveCost$ " %gDosh. %wUsage: %tmutate " $ReviveThemCmd$ " all %w/ %tmutate " $ReviveThemCmd$ " <Rev Code>";
 		SetColor(WelcomeMSG);
 		SetColor(DefaultTraderTimeMSG);
@@ -648,64 +648,21 @@ final function InjectNewMenu(class<Object> MenuName)
 // Print all 'dead' player names + IDs for revival message
 final function WhoTheFuckIsDead(PlayerController TmpPC)
 {
-	local bool bIsAlive, bNoOneDead;
 	local Controller C;
-	local string PendingMSG, EndedMSG, InProgressMSG, DeadPlayerMSG, NoOneDeadMSG, DeadPlayerName, DeadPlayerID, DeadPlayerRevCode;
-
-	bNoOneDead = true;
-
-	if(KFGT.IsInState('PendingMatch'))
-	{
-		PendingMSG = "%wThe game hasn't started yet!";
-		SetColor(PendingMSG);
-		TmpPC.ClientMessage(PendingMSG);
-		return;
-	}
-
-	if(KFGT.IsInState('GameEnded'))
-	{
-		EndedMSG = "%wThe game has ended, you cannot revive!";
-		SetColor(EndedMSG);
-		TmpPC.ClientMessage(EndedMSG);
-		return;
-	}
-
-	if(!KFGT.bWaveInProgress)
-	{
-		InProgressMSG = "%wAll players are already alive in Trader Time";
-		SetColor(InProgressMSG);
-		TmpPC.ClientMessage(InProgressMSG);
-		return;
-	}
+	local string DeadPlayerMSG, DeadPlayerName, DeadPlayerID, DeadPlayerRevCode;
 
 	for( C = Level.ControllerList; C != None; C = C.nextController )
 	{
 		if( C.IsA('PlayerController') && PlayerController(C).PlayerReplicationInfo.PlayerID != 0)
 		{
-			bIsAlive = C.PlayerReplicationInfo.bOutOfLives;
 			DeadPlayerName = C.PlayerReplicationInfo.PlayerName;
 			DeadPlayerID = PlayerController(C).GetPlayerIDHash();
 			DeadPlayerRevCode = Right(DeadPlayerID, 5);
 
-			// Skip if player is alive
-			if (bIsAlive == false)
-			{
-				continue;
-			}
-
-			bNoOneDead = false;
 			DeadPlayerMSG = "%t" $DeadPlayerName$ " %w / rev code: %t" $DeadPlayerRevCode$ " %w/ full code: %t" $DeadPlayerID;
 			SetColor(DeadPlayerMSG);
 			TmpPC.ClientMessage(DeadPlayerMSG);
 		}
-	}
-
-	if(bNoOneDead)
-	{
-		NoOneDeadMSG = "%wAll players are alive!";
-		SetColor(NoOneDeadMSG);
-		TmpPC.ClientMessage(NoOneDeadMSG);
-		return;
 	}
 }
 
@@ -783,7 +740,7 @@ defaultproperties
 {
 	// Mandatory Vars
 	GroupName = "KF-ServerTools"
-    FriendlyName = "Server Tools - v1.1"
+    FriendlyName = "Server Tools - v1.2"
     Description = "Collection of cool features to empower your server; Made by Vel-San"
 	bAddToServerPackages=true
 	RemoteRole=ROLE_SimulatedProxy
