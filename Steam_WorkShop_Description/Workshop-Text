@@ -6,7 +6,7 @@ Collection of cool features to empower your server:
 - Option to start a 'Skip Trader' vote collection
 - Option to change default trader time for whole match
 - Option to change current trader time for current trader
-- Option to give only selected players access permission to the manipulate trader time commands (Voting is allowed for all)
+- Option to give only selected players access permission to the manipulate trader time (Voting is allowed for all, tho)
 
 [b]Completely new[/b]
 
@@ -22,6 +22,7 @@ Collection of cool features to empower your server:
 
 - AdminMut
 - Trader Mut
+- ReloadOpt Mut
 - ServerPerks (Code Reference)
 - ScrN (Code Reference)
 - 2 Sirens 1 Cup
@@ -42,7 +43,7 @@ Collection of cool features to empower your server:
 # If set to True, only special players can manipulate trader time!
 bAdminAndSelectPlayers=True
 # If Set to True, you have to use the Custom ServerPerks from the workshop description
-# This will replace the 'Help' section, because who the f u c k uses that section anyways?
+# This will replace the 'Help' section, because who the fuck uses that section anyways?
 bServerPerksCompatibility=False
 # Command to be used to skip the whole trader time of current wave
 sSkipTraderCmd=skip
@@ -63,6 +64,8 @@ sReviveThem=rev
 iDefaultTraderTime=60
 # Cost for a single revive, if you have the Dosh, we give you the revive!
 iReviveCost=300
+# Timer on which the collected votes will reset, if the trader skip vote didn't pass
+iVoteReset=30
 # Add Special players who can access the mutate commands for trader manipulation
 aSpecialPlayers=(PName="Vel-San",steamID="76561198122568951")
 # Please do not delete or modify the tags of colors below!
@@ -108,7 +111,7 @@ Optional, if you have ServerPerks installed:
 
 [h1][b][u]Manual Download Links (Recommended)[/u][/b][/h1]
 
-You can find it under 'Whitelisted' folder named 'KF-KFServerTools-v1.0'
+You can find it under 'Not-Whitelisted' folder named 'KF-ServerTools-v1.1'
 
 - MEGA Link: https://mega DOT nz/folder/YDoEmKiC#s6FGAtgh40-TvB4bHsLaMQ
 

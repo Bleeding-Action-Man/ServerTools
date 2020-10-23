@@ -10,11 +10,11 @@ class KFServerTools extends Mutator Config(KFServerTools);
 // Config Vars
 var() config bool bDebug, bAdminAndSelectPlayers, bServerPerksCompatibility;
 var() config string sSkipTraderCmd, sVoteSkipTraderCmd, sCurrentTraderTimeCmd, sCustomTraderTimeCmd, sReviveListCmd, sReviveMeCmd, sReviveThemCmd;
-var() config int iDefaultTraderTime, iReviveCost;
+var() config int iDefaultTraderTime, iReviveCost, iVoteReset;
 
 // Tmp Vars
 var bool Debug, AdminAndSelectPlayers, ServerPerksCompatibility, VoteInProgress, IsTimerActive;
-var int DefaultTraderTime, ReviveCost;
+var int DefaultTraderTime, ReviveCost, VoteReset;
 var string SkipTraderCmd, VoteSkipTraderCmd, CurrentTraderTimeCmd, CustomTraderTimeCmd, ReviveListCmd, ReviveMeCmd, ReviveThemCmd;
 var KFGameType KFGT;
 var array<string> aPlayerIDs;
@@ -64,6 +64,7 @@ function PostBeginPlay()
 	ReviveThemCmd = sReviveThemCmd;
 	ReviveCost = iReviveCost;
 	DefaultTraderTime = iDefaultTraderTime;
+	VoteReset = iVoteReset;
 	KFGT = KFGameType(Level.Game);
 
 	// Add Server Tools tab to ESC-Menu
@@ -185,7 +186,7 @@ function Mutate(string command, PlayerController Sender)
 		AdminsAndSPsMSG = "%oOnly Admins & Selected players can manipulate trader time! You can however use the %t" $VoteSkipTraderCmd$ " %ocommand";
 		DefaultTraderTimeMSG = "%bCurrent default trader time: %w" $DefaultTraderTime;
 		SkipTraderMSG = "%w" $SkipTraderCmd$ ": %gSkip the current trader time. %wUsage: %tmutate " $SkipTraderCmd;
-		VoteSkipTraderMSG = "%w" $VoteSkipTraderCmd$ ": %gStart a vote with others to skip trader. %wUsage: %tmutate " $VoteSkipTraderCmd;
+		VoteSkipTraderMSG = "%w" $VoteSkipTraderCmd$ ": %gStart a vote to skip trader (Resets after %v" $VoteReset$ "%w). %wUsage: %tmutate " $VoteSkipTraderCmd;
 		CurrentTraderTimeMSG = "%w" $CurrentTraderTimeCmd$ ": %gChange the current trade time of this wave. %wUsage: %tmutate " $CurrentTraderTimeCmd$ " <6-255>";
 		CustomTraderTimeMSG = "%w" $CustomTraderTimeCmd$ ": %gChange the default trader time. %wUsage: %tmutate " $CustomTraderTimeCmd$ " <6-255>";
 		ReviveMeMSG = "%w" $ReviveMeCmd$ ": %gRevive yourself if you have at least %v" $ReviveCost$ " %gDosh. %wUsage: %tmutate " $ReviveMeCmd;
@@ -376,8 +377,8 @@ function bool StartSkipVote(PlayerController TmpPC)
 			// Reset aPlayerIDs to 0 if once a new wave starts
 			if(IsTimerActive == false)
 			{
-				CriticalServerMessage("%wCollecting votes to %bSkip Trader%w - Votes collected will reset in %r30 %wseconds!");
-				SetTimer( 30, false);
+				CriticalServerMessage("%wCollecting votes to %bSkip Trader%w - Votes collected will reset in %r" $VoteReset$ " %wseconds!");
+				SetTimer( VoteReset, false);
 				IsTimerActive = true;
 			}
 		}
@@ -459,7 +460,7 @@ function bool FuckingReviveMeCmd(PlayerController TmpPC)
 // Allow players to revive other players, and the dosh will be deducted from their own
 function bool FuckingReviveThemCmd(PlayerController TmpPC, string PlayerToReviveCodeMATCH)
 {
-	local int dosh, isPlayerFound;
+	local int dosh;
 	local string PendingMSG, EndedMSG, InProgressMSG, AliveMSG, NotFoundMSG, PoorMSG, DoshMSG, PlayerToReviveNAME, PlayerToReviveCode;
 	local Controller c;
 	local bool bIsAlive; // false = Alive, true = Dead
@@ -535,8 +536,7 @@ function bool FuckingReviveThemCmd(PlayerController TmpPC, string PlayerToRevive
 			}
 			else
 			{
-				isPlayerFound = InStr( Caps(PlayerToReviveCode), Caps(PlayerToReviveCodeMATCH));
-				if (isPlayerFound >= 0)
+				if (Right(PlayerToReviveCode, 5) == PlayerToReviveCodeMATCH)
 				{
 					// If player being revived is already alive
 					if (bIsAlive == false)
@@ -783,7 +783,7 @@ defaultproperties
 {
 	// Mandatory Vars
 	GroupName = "KF-ServerTools"
-    FriendlyName = "Server Tools - v1.0"
+    FriendlyName = "Server Tools - v1.1"
     Description = "Collection of cool features to empower your server; Made by Vel-San"
 	bAddToServerPackages=true
 	RemoteRole=ROLE_SimulatedProxy
@@ -805,6 +805,7 @@ defaultproperties
 	sReviveThemCmd = "rev"
 	iDefaultTraderTime = 60
 	iReviveCost = 300
+	iVoteReset = 30
 
 	// SpecialPlayers Array Example
 	// Only SteamID is important, PName is just to easily read & track the IDs
