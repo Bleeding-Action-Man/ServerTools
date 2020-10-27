@@ -8,13 +8,13 @@
 class KFServerTools extends Mutator Config(KFServerTools);
 
 // Config Vars
-var() config bool bDebug, bAdminAndSelectPlayers, bServerPerksCompatibility;
+var() config bool bDebug, bAdminAndSelectPlayers, bServerPerksCompatibility, bApplyTraderBoost;
 var() config string sSkipTraderCmd, sVoteSkipTraderCmd, sCurrentTraderTimeCmd, sCustomTraderTimeCmd, sReviveListCmd, sReviveMeCmd, sReviveThemCmd;
-var() config int iDefaultTraderTime, iReviveCost, iVoteReset;
+var() config int iDefaultTraderTime, iReviveCost, iVoteReset, iSpeedBoost;
 
 // Tmp Vars
-var bool Debug, AdminAndSelectPlayers, ServerPerksCompatibility, VoteInProgress, IsTimerActive;
-var int DefaultTraderTime, ReviveCost, VoteReset;
+var bool Debug, AdminAndSelectPlayers, ServerPerksCompatibility, ApplyTraderBoost, isBoostActive, VoteInProgress, IsTimerActive;
+var int DefaultTraderTime, ReviveCost, VoteReset, SpeedBoost;
 var string SkipTraderCmd, VoteSkipTraderCmd, CurrentTraderTimeCmd, CustomTraderTimeCmd, ReviveListCmd, ReviveMeCmd, ReviveThemCmd;
 var KFGameType KFGT;
 var array<string> aPlayerIDs;
@@ -53,8 +53,10 @@ function PostBeginPlay()
 	Debug = bDebug;
 	AdminAndSelectPlayers = bAdminAndSelectPlayers;
 	ServerPerksCompatibility = bServerPerksCompatibility;
+	ApplyTraderBoost = bApplyTraderBoost;
 	VoteInProgress = false;
 	IsTimerActive = false;
+	isBoostActive = false;
 	SkipTraderCmd = sSkipTraderCmd;
 	VoteSkipTraderCmd = sVoteSkipTraderCmd;
 	CurrentTraderTimeCmd = sCurrentTraderTimeCmd;
@@ -65,6 +67,7 @@ function PostBeginPlay()
 	ReviveCost = iReviveCost;
 	DefaultTraderTime = iDefaultTraderTime;
 	VoteReset = iVoteReset;
+	SpeedBoost = iSpeedBoost;
 	KFGT = KFGameType(Level.Game);
 
 	// Add Server Tools tab to ESC-Menu
@@ -81,11 +84,14 @@ function PostBeginPlay()
 	// Fill in the Dynamic Array of Special Players
 	for(i=0; i<aSpecialPlayers.Length; i=i++)
 	{
-    SpecialPlayers[i] = aSpecialPlayers[i];
+    	SpecialPlayers[i] = aSpecialPlayers[i];
   	}
 
 	// Generate config in case there is no .ini file
 	// SaveConfig();
+
+	// Enable Tick
+	Enable('Tick');
 
 	if(Debug)
 	{
@@ -114,16 +120,40 @@ function PostBeginPlay()
 // Timer to change default trader time
 function Timer()
 {
-
-	if(Debug)
-    	MutLog("-----|| DEBUG - New wave started | Trader Skip Votes reset ||-----");
-
 	// Notify Players that a new vote should be placed
 	CriticalServerMessage("%wTrader Skip votes have been %greset%w. You can start a %bnew%w vote now!");
 
 	// Reset the Votes array after trader is done
 	aPlayerIDs.length = 0;
 	IsTimerActive = false;
+
+}
+
+// Tick to reset votes + Give Trader Speed Boost
+function Tick(float DeltaTime)
+{
+	if (!KFGT.bWaveInProgress && !KFGT.IsInState('PendingMatch') && !KFGT.IsInState('GameEnded') && ApplyTraderBoost)
+	{
+		if(!isBoostActive)
+		{
+			GiveTraderBoost();
+		}
+	}
+	else
+	{
+
+		if(isBoostActive && ApplyTraderBoost)
+		{
+			ResetTraderBoost();
+		}
+
+		// Disable timer just in case it wasn't disabled ?
+		Disable('Timer');
+
+		// Reset the Votes array after trader is done
+		aPlayerIDs.length = 0;
+		IsTimerActive = false;
+	}
 }
 
 final function SplitStringToArray(out array<string> Parts, string Source, string Delim)
@@ -164,7 +194,7 @@ function CriticalServerMessage(string Msg)
 function Mutate(string command, PlayerController Sender)
 {
 	local string PN, PID;
-	local string WelcomeMSG, AdminsAndSPsMSG, DefaultTraderTimeMSG, SkipTraderMSG, VoteSkipTraderMSG, CurrentTraderTimeMSG, CustomTraderTimeMSG,
+	local string WelcomeMSG, AdminsAndSPsMSG, DefaultTraderTimeMSG, TraderSpeedBoostMSG, SkipTraderMSG, VoteSkipTraderMSG, CurrentTraderTimeMSG, CustomTraderTimeMSG,
 				MSG1, MSG2, MSG3,
 				ReviveMeMSG, ReviveListMSG, ReviveThemMSG, WarningMSG;
 	local array<string> SplitCMD;
@@ -185,6 +215,7 @@ function Mutate(string command, PlayerController Sender)
 		WelcomeMSG = "%yYou are viewing Server-Tools Help, below are the commands you can use:";
 		AdminsAndSPsMSG = "%oOnly Admins & Selected players can manipulate trader time! You can however use the %t" $VoteSkipTraderCmd$ " %ocommand";
 		DefaultTraderTimeMSG = "%bCurrent default trader time: %w" $DefaultTraderTime;
+		TraderSpeedBoostMSG = "%bTrader speed boost multiplier: %w" $SpeedBoost;
 		SkipTraderMSG = "%w" $SkipTraderCmd$ ": %gSkip the current trader time. %wUsage: %tmutate " $SkipTraderCmd;
 		VoteSkipTraderMSG = "%w" $VoteSkipTraderCmd$ ": %gStart a vote to skip trader (Resets after %v" $VoteReset$ "%w). %wUsage: %tmutate " $VoteSkipTraderCmd;
 		CurrentTraderTimeMSG = "%w" $CurrentTraderTimeCmd$ ": %gChange the current trade time of this wave. %wUsage: %tmutate " $CurrentTraderTimeCmd$ " <6-255>";
@@ -208,6 +239,11 @@ function Mutate(string command, PlayerController Sender)
 			Sender.ClientMessage(AdminsAndSPsMSG);
 		}
 		Sender.ClientMessage(DefaultTraderTimeMSG);
+		if(ApplyTraderBoost)
+		{
+			SetColor(TraderSpeedBoostMSG);
+			Sender.ClientMessage(TraderSpeedBoostMSG);
+		}
 		Sender.ClientMessage(SkipTraderMSG);
 		Sender.ClientMessage(VoteSkipTraderMSG);
 		Sender.ClientMessage(CurrentTraderTimeMSG);
@@ -228,7 +264,7 @@ function Mutate(string command, PlayerController Sender)
 	{
 		if(FuckingReviveMeCmd(Sender))
 		{
-			ServerMessage("%t" $PN$ " %whas revived himself!");
+			ServerMessage("%t" $PN$ " %whas revived!");
 		}
 		return;
 	}
@@ -373,7 +409,7 @@ function bool StartSkipVote(PlayerController TmpPC)
 		{
 			aPlayerIDs.Insert(0,1);
 			aPlayerIDs[0] = PlayerID;
-			ServerMessage("%t" $TmpPlayerName$ " %wis ready to skip trader / type in your console %bmutate " $VoteSkipTraderCmd$ " %wif you're also ready, or vote from the ESC-Menu!");
+			ServerMessage("%t" $TmpPlayerName$ " %wis ready to skip trader / type in your console %bmutate " $VoteSkipTraderCmd$ " %wif you're also ready, or %bvote%w from the ESC-Menu!");
 			// Reset aPlayerIDs to 0 if once a new wave starts
 			if(IsTimerActive == false)
 			{
@@ -384,8 +420,6 @@ function bool StartSkipVote(PlayerController TmpPC)
 		}
 		if(aPlayerIDs.length == GetActualPlayers())
 		{
-			Disable('Timer');
-			IsTimerActive = false;
 			if(Debug)
     			MutLog("-----|| DEBUG - All votes have been collected to skip trader | Timer Disabled ||-----");
 			KFGT.WaveCountDown = 6;
@@ -464,9 +498,11 @@ function bool FuckingReviveThemCmd(PlayerController TmpPC, string PlayerToRevive
 	local string PendingMSG, EndedMSG, InProgressMSG, AliveMSG, NotFoundMSG, PoorMSG, DoshMSG, PlayerToReviveNAME, PlayerToReviveCode;
 	local Controller c;
 	local bool bIsAlive; // false = Alive, true = Dead
+	local bool bNotFound;
 
 	// Dosh of the player attempting to revive another player
 	dosh = TmpPC.PlayerReplicationInfo.Score;
+	bNotFound = true;
 
 	if(KFGT.IsInState('PendingMatch'))
 	{
@@ -525,6 +561,9 @@ function bool FuckingReviveThemCmd(PlayerController TmpPC, string PlayerToRevive
 						return false;
 					}
 
+					// If at least one player is found, do not send the ' Not Found ' message.
+					bNotFound = false;
+
 					// If all above conditions are passed, revive current player
 					// And take dosh from the charitable reviver :D
 					TmpPC.PlayerReplicationInfo.Score = int(TmpPC.PlayerReplicationInfo.Score) - ReviveCost;
@@ -566,15 +605,16 @@ function bool FuckingReviveThemCmd(PlayerController TmpPC, string PlayerToRevive
 					OthersRespawnProcess(PlayerController(C));
 					return true;
 				}
-				else
-				{
-					NotFoundMSG = "%t" $PlayerToReviveCodeMATCH$ " %wis not related to any of the players! Try again with a more accurate name.";
-					SetColor(NotFoundMSG);
-					TmpPC.ClientMessage(NotFoundMSG);
-					return false;
-				}
 			}
 		}
+	}
+
+	if(bNotFound)
+	{
+		NotFoundMSG = "%t" $PlayerToReviveCodeMATCH$ " %wis not related to any of the players! Try again with a more accurate name.";
+		SetColor(NotFoundMSG);
+		TmpPC.ClientMessage(NotFoundMSG);
+		return false;
 	}
 }
 
@@ -690,6 +730,50 @@ function int GetActualPlayers()
   	return i;
 }
 
+function GiveTraderBoost()
+{
+	local KFHumanPawn Pawn;
+	local GameReplicationInfo GRI;
+
+	GRI = Level.Game.GameReplicationInfo;
+
+    MutLog("-----|| DEBUG - Trader Speed Boost Activated ||-----");
+
+	// Notify Players that a new vote should be placed
+	if ( GRI != none)
+	{
+		if (GRI.ElapsedTime < 10)
+		{
+			CriticalServerMessage("%bMatch Start%w Speed Boost %gActivated!%w");
+		}
+		else
+		{
+			CriticalServerMessage("%bTrader%w Speed Boost %gActivated!%w");
+		}
+	}
+
+	isBoostActive = true;
+
+	foreach DynamicActors(class'KFHumanPawn', Pawn){
+		Pawn.default.GroundSpeed *= SpeedBoost;
+	}
+
+}
+
+Function ResetTraderBoost()
+{
+	local KFHumanPawn Pawn;
+
+    MutLog("-----|| DEBUG - Trader Speed Boost Deactivated ||-----");
+
+	foreach DynamicActors(class'KFHumanPawn', Pawn){
+		Pawn.default.GroundSpeed = 200;
+	}
+
+	// Make sure to disable speed boost after trader ends
+	isBoostActive = false;
+}
+
 function TimeStampLog(coerce string s)
 {
   log("["$Level.TimeSeconds$"s]" @ s, 'SkipTrader');
@@ -740,7 +824,7 @@ defaultproperties
 {
 	// Mandatory Vars
 	GroupName = "KF-ServerTools"
-    FriendlyName = "Server Tools - v1.2"
+    FriendlyName = "Server Tools - v1.3"
     Description = "Collection of cool features to empower your server; Made by Vel-San"
 	bAddToServerPackages=true
 	RemoteRole=ROLE_SimulatedProxy
@@ -753,6 +837,7 @@ defaultproperties
 	bDebug = False
 	bAdminAndSelectPlayers = True
 	bServerPerksCompatibility = False
+	bApplyTraderBoost = True
     sSkipTraderCmd = "skip"
 	sVoteSkipTraderCmd = "voteskip"
     sCurrentTraderTimeCmd = "tt"
@@ -763,6 +848,7 @@ defaultproperties
 	iDefaultTraderTime = 60
 	iReviveCost = 300
 	iVoteReset = 30
+	iSpeedBoost = 2
 
 	// SpecialPlayers Array Example
 	// Only SteamID is important, PName is just to easily read & track the IDs
