@@ -328,10 +328,10 @@ function Mutate(string command, PlayerController Sender)
       Sender.ClientMessage(MSG3);
       return;
     }
-      KFGT.TimeBetweenWaves = int(SplitCMD[1]);
-      iDefaultTraderTime = int(SplitCMD[1]);
-      default.iDefaultTraderTime = int(SplitCMD[1]);
-      ServerMessage("%t" $PN$ " %wchanged the trader time between waves to %t" $string(int(SplitCMD[1]))$ " %wseconds.");
+    KFGT.TimeBetweenWaves = int(SplitCMD[1]);
+    iDefaultTraderTime = int(SplitCMD[1]);
+    default.iDefaultTraderTime = int(SplitCMD[1]);
+    ServerMessage("%t" $PN$ " %wchanged the trader time between waves to %t" $string(int(SplitCMD[1]))$ " %wseconds.");
   }
 
   if (NextMutator != None ) NextMutator.Mutate(command, Sender);
