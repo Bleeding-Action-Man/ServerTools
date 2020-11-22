@@ -689,7 +689,7 @@ final function WhoTheFuckIsDead(PlayerController TmpPC)
       DeadPlayerID = PlayerController(C).GetPlayerIDHash();
       DeadPlayerRevCode = Right(DeadPlayerID, 5);
 
-      DeadPlayerMSG = "%t" $DeadPlayerName$ " %w | rev code: %t" $DeadPlayerRevCode;
+      DeadPlayerMSG = "%t" $DeadPlayerName$ "%w | rev code: %t" $DeadPlayerRevCode;
       SetColor(DeadPlayerMSG);
       TmpPC.ClientMessage(DeadPlayerMSG);
     }
@@ -807,7 +807,7 @@ defaultproperties
 {
   // Mandatory Vars
   GroupName = "KF-ServerTools"
-  FriendlyName = "Server Tools - v1.4"
+  FriendlyName = "Server Tools - v1.4.1"
   Description = "Collection of cool features to empower your server; Made by Vel-San"
   bAddToServerPackages = true
   RemoteRole = ROLE_SimulatedProxy
