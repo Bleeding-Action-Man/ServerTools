@@ -17,6 +17,7 @@ Collection of cool features to empower your server:
 - Global notifications to improve user experience
 - User friendly customization
 - Semi-ServerPerks support (in-code check, however, you need to replace 1 ServerPerks file with the one i provide you, because SP is overriding all ESC-Menu muts)
+- Trader speed boost (Activates once a wave is done, also, on the start of a match before the timer begins)
 
 [b]This mut wouldn't be alive if it wasn't for/Credits to[/b]
 
@@ -45,6 +46,8 @@ bAdminAndSelectPlayers=True
 # If Set to True, you have to use the Custom ServerPerks from the workshop description
 # This will replace the 'Help' section, because who the fuck uses that section anyways?
 bServerPerksCompatibility=False
+# Increase speed of all players once trader time starts
+bApplyTraderBoost=True
 # Command to be used to skip the whole trader time of current wave
 sSkipTraderCmd=skip
 # Command to be used when you want to start a skip trader vote, instead of instantly skipping regardless of others
@@ -66,6 +69,8 @@ iDefaultTraderTime=60
 iReviveCost=300
 # Timer on which the collected votes will reset, if the trader skip vote didn't pass
 iVoteReset=30
+# If ApplyTraderSpeed is enabled, players ground speed will be 'MULTIPLIED' with below value
+iSpeedBoost=2
 # Add Special players who can access the mutate commands for trader manipulation
 aSpecialPlayers=(PName="Vel-San",steamID="76561198122568951")
 # Please do not delete or modify the tags of colors below!
@@ -111,8 +116,8 @@ Optional, if you have ServerPerks installed:
 
 [h1][b][u]Manual Download Links (Recommended)[/u][/b][/h1]
 
-You can find it under 'Not-Whitelisted' folder named 'KF-ServerTools-v1.2'
+You can find it under 'Not-Whitelisted' folder named 'KF-ServerTools-v1.3'
 
 - MEGA Link: https://mega DOT nz/folder/YDoEmKiC#s6FGAtgh40-TvB4bHsLaMQ
 
-- Github: https://github.com/Vel-San/KF-ServerTools/releases/tag/v1.2r
+- Github: https://github.com/Vel-San/KF-ServerTools/releases/tag/v1.3r
