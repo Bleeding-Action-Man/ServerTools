@@ -127,17 +127,11 @@ function Tick(float DeltaTime)
 {
   if (!KFGT.bWaveInProgress && !KFGT.IsInState('PendingMatch') && !KFGT.IsInState('GameEnded') && ApplyTraderBoost)
   {
-    if(!isBoostActive)
-    {
-      GiveTraderBoost();
-    }
+    if(!isBoostActive) GiveTraderBoost();
   }
   else
   {
-    if(isBoostActive && ApplyTraderBoost)
-    {
-      ResetTraderBoost();
-    }
+    if(isBoostActive && ApplyTraderBoost) ResetTraderBoost();
 
     // Disable timer just in case it wasn't disabled ?
     Disable('Timer');
@@ -186,7 +180,8 @@ function CriticalServerMessage(string Msg)
 function Mutate(string command, PlayerController Sender)
 {
   local string PN, PID;
-  local string WelcomeMSG, AdminsAndSPsMSG, DefaultTraderTimeMSG, TraderSpeedBoostMSG, SkipTraderMSG, VoteSkipTraderMSG, CurrentTraderTimeMSG, CustomTraderTimeMSG,
+  local string WelcomeMSG, AdminsAndSPsMSG, DefaultTraderTimeMSG, TraderSpeedBoostMSG,
+              SkipTraderMSG, VoteSkipTraderMSG, CurrentTraderTimeMSG, CustomTraderTimeMSG,
               MSG1, MSG2, MSG3,
               ReviveMeMSG, ReviveListMSG, ReviveThemMSG, WarningMSG;
   local array<string> SplitCMD;
@@ -652,7 +647,8 @@ function OthersRespawnProcess(PlayerController TmpPC)
 // Matches SteamIDs for each player
 final function bool FindSteamID(out int i, string ID)
 {
-  for(i=0; i<SpecialPlayers.Length; i++){
+  for(i=0; i<SpecialPlayers.Length; i++)
+  {
     if (ID == SpecialPlayers[i].SteamID) return true;
   }
   return false;
@@ -666,7 +662,9 @@ final function InjectNewMenu(class<Object> MenuName)
   KFGT.LoginMenuClass = string(MenuName);
 
   ForEach DynamicActors(class'PlayerController', TmpPC)
+  {
     TmpPC.MidGameMenuClass = "STInvasionLoginMenu";
+  }
 }
 
 // Print all 'dead' player names + IDs for revival message
@@ -729,7 +727,9 @@ function GiveTraderBoost()
 
   isBoostActive = true;
 
-  foreach DynamicActors(class'KFHumanPawn', Pawn){
+  // TODO: Test without the *= , just =
+  foreach DynamicActors(class'KFHumanPawn', Pawn)
+  {
     Pawn.default.GroundSpeed *= SpeedBoost;
   }
 }
@@ -740,7 +740,8 @@ Function ResetTraderBoost()
 
   MutLog("-----|| DEBUG - Trader Speed Boost Deactivated ||-----");
 
-  foreach DynamicActors(class'KFHumanPawn', Pawn){
+  foreach DynamicActors(class'KFHumanPawn', Pawn)
+  {
     Pawn.default.GroundSpeed = 200;
   }
 
@@ -800,9 +801,9 @@ defaultproperties
   GroupName = "KF-ServerTools"
   FriendlyName = "Server Tools - v1.3"
   Description = "Collection of cool features to empower your server; Made by Vel-San"
-  bAddToServerPackages=true
-  RemoteRole=ROLE_SimulatedProxy
-  bAlwaysRelevant=true
+  bAddToServerPackages = true
+  RemoteRole = ROLE_SimulatedProxy
+  bAlwaysRelevant = true
 
   // Inject new ESC-Menu Tab
   STMenuType=class'STInvasionLoginMenu'
@@ -829,12 +830,12 @@ defaultproperties
   // aSpecialPlayers=(PName="Vel-San",steamID="76561198122568951")
 
   // Colors list | Do not edit the tags AT ALL COSTS | Better leave this untouched at all times
-  ColorList(0)=(ColorName="Red",ColorTag="%r",Color=(B=0,G=0,R=200,A=0))
-  ColorList(1)=(ColorName="Orange",ColorTag="%o",Color=(B=0,G=127,R=255,A=0))
-  ColorList(2)=(ColorName="Yellow",ColorTag="%y",Color=(B=0,G=255,R=255,A=0))
-  ColorList(3)=(ColorName="Green",ColorTag="%g",Color=(B=0,G=200,R=0,A=0))
-  ColorList(4)=(ColorName="Blue",ColorTag="%b",Color=(B=200,G=100,R=0,A=0))
-  ColorList(5)=(ColorName="Teal",ColorTag="%t",Color=(B=113,G=179,R=60,A=0))
-  ColorList(6)=(ColorName="Violet",ColorTag="%v",Color=(B=139,G=0,R=255,A=0))
-  ColorList(7)=(ColorName="White",ColorTag="%w",Color=(B=200,G=200,R=200,A=0))
+  // ColorList(0)=(ColorName="Red",ColorTag="%r",Color=(B=0,G=0,R=200,A=0))
+  // ColorList(1)=(ColorName="Orange",ColorTag="%o",Color=(B=0,G=127,R=255,A=0))
+  // ColorList(2)=(ColorName="Yellow",ColorTag="%y",Color=(B=0,G=255,R=255,A=0))
+  // ColorList(3)=(ColorName="Green",ColorTag="%g",Color=(B=0,G=200,R=0,A=0))
+  // ColorList(4)=(ColorName="Blue",ColorTag="%b",Color=(B=200,G=100,R=0,A=0))
+  // ColorList(5)=(ColorName="Teal",ColorTag="%t",Color=(B=113,G=179,R=60,A=0))
+  // ColorList(6)=(ColorName="Violet",ColorTag="%v",Color=(B=139,G=0,R=255,A=0))
+  // ColorList(7)=(ColorName="White",ColorTag="%w",Color=(B=200,G=200,R=200,A=0))
 }
