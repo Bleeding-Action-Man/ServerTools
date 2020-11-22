@@ -1,10 +1,12 @@
-class STBlankPanel extends MidGamePanel;
+class STBlankPanel extends MidGamePanel DependsOn(KFServerTools);
 
 var automated array<GUIButton> b_KFButtons;
 
 var noexport bool bNetGame;
 var string SkipForAdminsOnly, PlayerStyleName;
 var GUIStyles PlayerStyle;
+
+var KFServerTools MutRef;
 
 function InitComponent(GUIController MyController, GUIComponent MyOwner)
 {
@@ -81,7 +83,7 @@ function InitGRI()
 
   bInit = False;
   bNetGame = PC.Level.NetMode != NM_StandAlone;
-  if (class'KFServerTools'.default.bAdminAndSelectPlayers) b_KFButtons[0].Caption = SkipForAdminsOnly;
+  if (class'KFServerTools'.default.Mut.AdminAndSelectPlayers) b_KFButtons[0].Caption = SkipForAdminsOnly;
   SetupGroups();
 }
 
@@ -163,21 +165,23 @@ function bool ButtonClicked(GUIComponent Sender)
   local string Cmd;
 
   PC = PlayerOwner();
+  MutRef = class'KFServerTools'.default.Mut;
+
   if (PC == None) return false;
 
-  if (Sender == b_KFButtons[0]) PC.ServerMutate(class'KFServerTools'.default.sSkipTraderCmd);
+  if (Sender == b_KFButtons[0]) PC.ServerMutate(MutRef.SkipTraderCmd);
 
-  if (Sender == b_KFButtons[1]) PC.ServerMutate(class'KFServerTools'.default.sVoteSkipTraderCmd);
+  if (Sender == b_KFButtons[1]) PC.ServerMutate(MutRef.VoteSkipTraderCmd);
 
   if (Sender == b_KFButtons[2])
   {
-    cmd = class'KFServerTools'.default.sReviveMeCmd;
+    cmd = MutRef.ReviveMeCmd;
     PC.ServerMutate(cmd);
   }
 
   if (Sender == b_KFButtons[3])
   {
-    cmd = class'KFServerTools'.default.sReviveThemCmd$ " all";
+    cmd = MutRef.ReviveThemCmd$ " all";
     PC.ServerMutate(cmd);
   }
 

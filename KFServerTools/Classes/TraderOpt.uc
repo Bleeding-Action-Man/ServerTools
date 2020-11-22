@@ -1,4 +1,4 @@
-class TraderOpt extends STBlankPanel;
+class TraderOpt extends STBlankPanel DependsOn(KFServerTools);
 
 var automated GUISectionBackground i_BGCenter;
 var automated moEditBox ed_DefaultTrader;
@@ -27,15 +27,16 @@ function ShowPanel(bool bShow)
 {
   Super.ShowPanel(bShow);
 
+  MutRef = class'KFServerTools'.default.Mut;
   if (bShow)
   {
     // Default Trader EditBox
-    ed_DefaultTrader.SetComponentValue(120, true);
-    if (class'KFServerTools'.default.bAdminAndSelectPlayers) b_ApplyButton.Caption = AdminsOnlyText;
+    ed_DefaultTrader.SetComponentValue(MutRef.DefaultTraderTime, true);
+    if (MutRef.AdminAndSelectPlayers) b_ApplyButton.Caption = AdminsOnlyText;
 
     // Current Trader EditBox
-    ed_CurrentTrader.SetComponentValue("120", true);
-    if (class'KFServerTools'.default.bAdminAndSelectPlayers) b_ApplyButton2.Caption = AdminsOnlyText;
+    ed_CurrentTrader.SetComponentValue(120, true);
+    if (MutRef.AdminAndSelectPlayers) b_ApplyButton2.Caption = AdminsOnlyText;
 
     // Revive related Info
     // Player Code EditBox
@@ -47,7 +48,7 @@ function UpdateDefaultTraderTime(PlayerController TmpPC)
 {
   local string Cmd;
 
-  cmd = class'KFServerTools'.default.sCustomTraderTimeCmd$ " " $ed_DefaultTrader.GetComponentValue();
+  cmd = class'KFServerTools'.default.Mut.CustomTraderTimeCmd$ " " $ed_DefaultTrader.GetComponentValue();
   TmpPC.ServerMutate(cmd);
 }
 
@@ -55,7 +56,7 @@ function UpdateCurrentTraderTime(PlayerController TmpPC)
 {
   local string Cmd;
 
-  cmd = class'KFServerTools'.default.sCurrentTraderTimeCmd$ " " $ed_CurrentTrader.GetComponentValue();
+  cmd = class'KFServerTools'.default.Mut.CurrentTraderTimeCmd$ " " $ed_CurrentTrader.GetComponentValue();
   TmpPC.ServerMutate(cmd);
 }
 
@@ -63,7 +64,7 @@ function PrintDeadPlayers(PlayerController TmpPC)
 {
   local string Cmd;
 
-  cmd = class'KFServerTools'.default.sReviveListCmd;
+  cmd = class'KFServerTools'.default.Mut.ReviveListCmd;
   TmpPC.ServerMutate(cmd);
 }
 
@@ -71,7 +72,7 @@ function RevivePlayerByCode(PlayerController TmpPC)
 {
   local string Cmd;
 
-  cmd = class'KFServerTools'.default.sReviveThemCmd$ " " $ed_RevPlayer.GetComponentValue();
+  cmd = class'KFServerTools'.default.Mut.ReviveThemCmd$ " " $ed_RevPlayer.GetComponentValue();
   TmpPC.ServerMutate(cmd);
 }
 

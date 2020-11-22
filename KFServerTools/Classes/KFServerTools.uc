@@ -39,8 +39,16 @@ struct ColorRecord
 };
 var() config array<ColorRecord> ColorList; // Color list
 
+replication
+{
+  unreliable if (Role == ROLE_Authority)
+                  Debug, AdminAndSelectPlayers, ServerPerksCompatibility, ApplyTraderBoost,
+                  DefaultTraderTime, ReviveCost, VoteReset, SpeedBoost,
+                  SkipTraderCmd, VoteSkipTraderCmd, CurrentTraderTimeCmd, CustomTraderTimeCmd, ReviveListCmd, ReviveMeCmd, ReviveThemCmd;
+}
+
 // Initialization
-function PostBeginPlay()
+simulated function PostBeginPlay()
 {
   local int i;
 
@@ -201,12 +209,12 @@ function Mutate(string command, PlayerController Sender)
     DefaultTraderTimeMSG = "%bCurrent default trader time: %w" $DefaultTraderTime;
     TraderSpeedBoostMSG = "%bTrader speed boost multiplier: %w" $SpeedBoost;
     SkipTraderMSG = "%w" $SkipTraderCmd$ ": %gSkip the current trader time. %wUsage: %tmutate " $SkipTraderCmd;
-    VoteSkipTraderMSG = "%w" $VoteSkipTraderCmd$ ": %gStart a vote to skip trader (Resets after %v" $VoteReset$ "%w). %wUsage: %tmutate " $VoteSkipTraderCmd;
+    VoteSkipTraderMSG = "%w" $VoteSkipTraderCmd$ ": %gStart a vote to skip trader %w(%gResets after %v" $VoteReset$ "%w). %wUsage: %tmutate " $VoteSkipTraderCmd;
     CurrentTraderTimeMSG = "%w" $CurrentTraderTimeCmd$ ": %gChange the current trade time of this wave. %wUsage: %tmutate " $CurrentTraderTimeCmd$ " <6-255>";
     CustomTraderTimeMSG = "%w" $CustomTraderTimeCmd$ ": %gChange the default trader time. %wUsage: %tmutate " $CustomTraderTimeCmd$ " <6-255>";
     ReviveMeMSG = "%w" $ReviveMeCmd$ ": %gRevive yourself if you have at least %v" $ReviveCost$ " %gDosh. %wUsage: %tmutate " $ReviveMeCmd;
     ReviveListMSG = "%w" $ReviveListCmd$ ": %gShows a list of every player + their revive code. %wUsage: %tmutate " $ReviveListCmd;
-    ReviveThemMSG = "%w" $ReviveThemCmd$ ": %gRevive other players. Costs %v" $ReviveCost$ " %gDosh. %wUsage: %tmutate " $ReviveThemCmd$ " all %w/ %tmutate " $ReviveThemCmd$ " <Rev Code>";
+    ReviveThemMSG = "%w" $ReviveThemCmd$ ": %gRevive other players. Costs %v" $ReviveCost$ " %gDosh. %wUsage: %tmutate " $ReviveThemCmd$ " all %w| %tmutate " $ReviveThemCmd$ " <Rev Code>";
     SetColor(WelcomeMSG);
     SetColor(DefaultTraderTimeMSG);
     SetColor(SkipTraderMSG);
@@ -329,8 +337,7 @@ function Mutate(string command, PlayerController Sender)
       return;
     }
     KFGT.TimeBetweenWaves = int(SplitCMD[1]);
-    iDefaultTraderTime = int(SplitCMD[1]);
-    default.iDefaultTraderTime = int(SplitCMD[1]);
+    DefaultTraderTime = int(SplitCMD[1]);
     ServerMessage("%t" $PN$ " %wchanged the trader time between waves to %t" $string(int(SplitCMD[1]))$ " %wseconds.");
   }
 
@@ -394,7 +401,8 @@ function bool StartSkipVote(PlayerController TmpPC)
     {
       aPlayerIDs.Insert(0,1);
       aPlayerIDs[0] = PlayerID;
-      ServerMessage("%t" $TmpPlayerName$ " %wis ready to skip trader / type in your console %bmutate " $VoteSkipTraderCmd$ " %wif you're also ready, or %bvote%w from the ESC-Menu!");
+      ServerMessage("%t" $TmpPlayerName$ " %wis ready to skip trader");
+      ServerMessage("%wType in your console %bmutate " $VoteSkipTraderCmd$ " %wif you're also ready, or %bvote%w from the ESC-Menu!");
       // Reset aPlayerIDs to 0 if once a new wave starts
       if(IsTimerActive == false)
       {
@@ -459,7 +467,7 @@ function bool FuckingReviveMeCmd(PlayerController TmpPC)
   // Check if they have enough dosh
   if (dosh < ReviveCost)
   {
-    DeadMSG = "%wYeah... you're fucking %rdead %wAND %rbroke! %wYou need %t" $ReviveCost$ " %wDo$h for a revive";
+    DeadMSG = "%wYou need %t" $ReviveCost$ " %wDo$h for a revive";
     SetColor(DeadMSG);
     TmpPC.ClientMessage(DeadMSG);
     return false;
@@ -468,7 +476,7 @@ function bool FuckingReviveMeCmd(PlayerController TmpPC)
   {
     SelfRespawnProcess(TmpPC);
     dosh = TmpPC.PlayerReplicationInfo.Score;
-    DoshMSG = "%wFuck Yeah! You've been given another chance for life. Your total %g$$$ %wis now: %g" $dosh;
+    DoshMSG = "%wYou've been given another chance for life. Your total %g$$$ %wis now: %g" $dosh;
     SetColor(DoshMSG);
     TmpPC.ClientMessage(DoshMSG);
     return true;
@@ -549,7 +557,7 @@ function bool FuckingReviveThemCmd(PlayerController TmpPC, string PlayerToRevive
         // And take dosh from the charitable reviver :D
         TmpPC.PlayerReplicationInfo.Score = int(TmpPC.PlayerReplicationInfo.Score) - ReviveCost;
         dosh = TmpPC.PlayerReplicationInfo.Score;
-        DoshMSG = "%wFuck Yeah! You've given %t" $PlayerToReviveNAME$ " %wanother chance for life. Your total %g$$$ %wis now: %g" $dosh;
+        DoshMSG = "%wYou've given %t" $PlayerToReviveNAME$ " %wanother chance for life. Your total %g$$$ %wis now: %g" $dosh;
         SetColor(DoshMSG);
         TmpPC.ClientMessage(DoshMSG);
         OthersRespawnProcess(PlayerController(C));
@@ -580,7 +588,7 @@ function bool FuckingReviveThemCmd(PlayerController TmpPC, string PlayerToRevive
           // And take dosh from the charitable reviver :D
           TmpPC.PlayerReplicationInfo.Score = int(TmpPC.PlayerReplicationInfo.Score) - ReviveCost;
           dosh = TmpPC.PlayerReplicationInfo.Score;
-          DoshMSG = "%wFuck Yeah! You've given %t" $PlayerToReviveNAME$ " %wanother chance for life. Your total %g$$$ %wis now: %g" $dosh;
+          DoshMSG = "%wYou've given %t" $PlayerToReviveNAME$ " %wanother chance for life. Your total %g$$$ %wis now: %g" $dosh;
           SetColor(DoshMSG);
           TmpPC.ClientMessage(DoshMSG);
           OthersRespawnProcess(PlayerController(C));
@@ -681,7 +689,7 @@ final function WhoTheFuckIsDead(PlayerController TmpPC)
       DeadPlayerID = PlayerController(C).GetPlayerIDHash();
       DeadPlayerRevCode = Right(DeadPlayerID, 5);
 
-      DeadPlayerMSG = "%t" $DeadPlayerName$ " %w / rev code: %t" $DeadPlayerRevCode$ " %w/ full code: %t" $DeadPlayerID;
+      DeadPlayerMSG = "%t" $DeadPlayerName$ " %w | rev code: %t" $DeadPlayerRevCode;
       SetColor(DeadPlayerMSG);
       TmpPC.ClientMessage(DeadPlayerMSG);
     }
@@ -799,31 +807,33 @@ defaultproperties
 {
   // Mandatory Vars
   GroupName = "KF-ServerTools"
-  FriendlyName = "Server Tools - v1.3"
+  FriendlyName = "Server Tools - v1.4"
   Description = "Collection of cool features to empower your server; Made by Vel-San"
   bAddToServerPackages = true
   RemoteRole = ROLE_SimulatedProxy
   bAlwaysRelevant = true
+  bNetNotify=true
 
   // Inject new ESC-Menu Tab
   STMenuType=class'STInvasionLoginMenu'
 
   // Mut Vars
-  bDebug = False
-  bAdminAndSelectPlayers = True
-  bServerPerksCompatibility = False
-  bApplyTraderBoost = True
-  sSkipTraderCmd = "skip"
-  sVoteSkipTraderCmd = "voteskip"
-  sCurrentTraderTimeCmd = "tt"
-  sCustomTraderTimeCmd = "ct"
-  sReviveListCmd = "dpl"
-  sReviveMeCmd = "revme"
-  sReviveThemCmd = "rev"
-  iDefaultTraderTime = 60
-  iReviveCost = 300
-  iVoteReset = 30
-  iSpeedBoost = 2
+  // Below are just a sample of default config
+  // bDebug = False
+  // bAdminAndSelectPlayers = True
+  // bServerPerksCompatibility = False
+  // bApplyTraderBoost = True
+  // sSkipTraderCmd = "skip"
+  // sVoteSkipTraderCmd = "voteskip"
+  // sCurrentTraderTimeCmd = "tt"
+  // sCustomTraderTimeCmd = "ct"
+  // sReviveListCmd = "dpl"
+  // sReviveMeCmd = "revme"
+  // sReviveThemCmd = "rev"
+  // iDefaultTraderTime = 60
+  // iReviveCost = 300
+  // iVoteReset = 30
+  // iSpeedBoost = 2
 
   // SpecialPlayers Array Example
   // Only SteamID is important, PName is just to easily read & track the IDs
