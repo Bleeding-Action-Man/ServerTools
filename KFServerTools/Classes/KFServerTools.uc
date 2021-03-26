@@ -735,10 +735,10 @@ function GiveTraderBoost()
 
   isBoostActive = true;
 
-  // TODO: Test without the *= , just =
+  // TODO: Figure a better way than a foreach loop..
   foreach DynamicActors(class'KFHumanPawn', Pawn)
   {
-    Pawn.default.GroundSpeed *= SpeedBoost;
+    Pawn.default.GroundSpeed = SpeedBoost;
   }
 }
 
@@ -807,7 +807,7 @@ defaultproperties
 {
   // Mandatory Vars
   GroupName = "KF-ServerTools"
-  FriendlyName = "Server Tools - v1.4.1"
+  FriendlyName = "Server Tools - v1.4.2"
   Description = "Collection of cool features to empower your server; Made by Vel-San"
   bAddToServerPackages = true
   RemoteRole = ROLE_SimulatedProxy
@@ -833,7 +833,7 @@ defaultproperties
   // iDefaultTraderTime = 60
   // iReviveCost = 300
   // iVoteReset = 30
-  // iSpeedBoost = 2
+  // iSpeedBoost = 500
 
   // SpecialPlayers Array Example
   // Only SteamID is important, PName is just to easily read & track the IDs
