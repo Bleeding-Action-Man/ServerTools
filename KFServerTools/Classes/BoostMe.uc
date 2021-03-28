@@ -1,7 +1,7 @@
 Class BoostMe extends Info Config(KFServerTools);
 
 var() config int iSpeedBoost, iAfterWaveStartBoost, iMatchStartBoost;
-var() config string sMatchStartBoostMessage, sTraderBoostMessage;
+var() config string sMatchStartBoostMessage, sTraderBoostMessage, sBoostEndMessage;
 var() config bool bGlobalMSG;
 
 function PostBeginPlay()
@@ -29,13 +29,15 @@ function PostBeginPlay()
       // Trader Time Boost
       if (bGlobalMSG) class'KFServerTools'.default.Mut.CriticalServerMessage(sTraderBoostMessage);
       else class'KFServerTools'.default.Mut.ServerMessage(sTraderBoostMessage);
-      SetTimer(KFGT.TimeBetweenWaves + iAfterWaveStartBoost + 10, false); // +10 is for wave start 10 seconds
+      SetTimer(KFGT.TimeBetweenWaves + iAfterWaveStartBoost, false);
     }
   }
 }
 
 function Timer()
 {
+  if (bGlobalMSG) class'KFServerTools'.default.Mut.CriticalServerMessage(sBoostEndMessage);
+  else class'KFServerTools'.default.Mut.ServerMessage(sBoostEndMessage);
   Destroy();
 }
 
