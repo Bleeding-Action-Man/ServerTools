@@ -10,11 +10,11 @@ class KFServerTools extends Mutator Config(KFServerTools);
 // Config Vars
 var() config bool bDebug, bAdminAndSelectPlayers, bServerPerksCompatibility, bApplyTraderBoost;
 var() config string sSkipTraderCmd, sVoteSkipTraderCmd, sCurrentTraderTimeCmd, sCustomTraderTimeCmd, sReviveListCmd, sReviveMeCmd, sReviveThemCmd;
-var() config int iDefaultTraderTime, iReviveCost, iVoteReset, iSpeedBoost;
+var() config int iDefaultTraderTime, iReviveCost, iVoteReset;
 
 // Tmp Vars
 var bool Debug, AdminAndSelectPlayers, ServerPerksCompatibility, ApplyTraderBoost, isBoostActive, VoteInProgress, IsTimerActive;
-var int DefaultTraderTime, ReviveCost, VoteReset, SpeedBoost;
+var int DefaultTraderTime, ReviveCost, VoteReset;
 var string SkipTraderCmd, VoteSkipTraderCmd, CurrentTraderTimeCmd, CustomTraderTimeCmd, ReviveListCmd, ReviveMeCmd, ReviveThemCmd;
 var KFGameType KFGT;
 var array<string> aPlayerIDs;
@@ -43,7 +43,7 @@ replication
 {
   unreliable if (Role == ROLE_Authority)
                   Debug, AdminAndSelectPlayers, ServerPerksCompatibility, ApplyTraderBoost,
-                  DefaultTraderTime, ReviveCost, VoteReset, SpeedBoost,
+                  DefaultTraderTime, ReviveCost, VoteReset,
                   SkipTraderCmd, VoteSkipTraderCmd, CurrentTraderTimeCmd, CustomTraderTimeCmd, ReviveListCmd, ReviveMeCmd, ReviveThemCmd;
 }
 
@@ -75,7 +75,6 @@ simulated function PostBeginPlay()
   ReviveCost = iReviveCost;
   DefaultTraderTime = iDefaultTraderTime;
   VoteReset = iVoteReset;
-  SpeedBoost = iSpeedBoost;
   KFGT = KFGameType(Level.Game);
 
   // Add Server Tools tab to ESC-Menu
@@ -139,7 +138,7 @@ function Tick(float DeltaTime)
   }
   else
   {
-    if(isBoostActive && ApplyTraderBoost) ResetTraderBoost();
+    if(ApplyTraderBoost) isBoostActive = false;
 
     // Disable timer just in case it wasn't disabled ?
     Disable('Timer');
@@ -207,7 +206,7 @@ function Mutate(string command, PlayerController Sender)
     WelcomeMSG = "%yYou are viewing Server-Tools Help, below are the commands you can use:";
     AdminsAndSPsMSG = "%oOnly Admins & Selected players can manipulate trader time! You can however use the %t" $VoteSkipTraderCmd$ " %ocommand";
     DefaultTraderTimeMSG = "%bCurrent default trader time: %w" $DefaultTraderTime;
-    TraderSpeedBoostMSG = "%bTrader speed boost multiplier: %w" $SpeedBoost;
+    TraderSpeedBoostMSG = "%bTrader speed boost is enabled";
     SkipTraderMSG = "%w" $SkipTraderCmd$ ": %gSkip the current trader time. %wUsage: %tmutate " $SkipTraderCmd;
     VoteSkipTraderMSG = "%w" $VoteSkipTraderCmd$ ": %gStart a vote to skip trader %w(%gResets after %v" $VoteReset$ "%w). %wUsage: %tmutate " $VoteSkipTraderCmd;
     CurrentTraderTimeMSG = "%w" $CurrentTraderTimeCmd$ ": %gChange the current trade time of this wave. %wUsage: %tmutate " $CurrentTraderTimeCmd$ " <6-255>";
@@ -719,42 +718,19 @@ function int GetActualPlayers()
 
 function GiveTraderBoost()
 {
-  local KFHumanPawn Pawn;
-  local GameReplicationInfo GRI;
+  local Controller C;
+  local PlayerController PC;
 
-  GRI = Level.Game.GameReplicationInfo;
 
   MutLog("-----|| DEBUG - Trader Speed Boost Activated ||-----");
 
-  // Notify Players that a new vote should be placed
-  if ( GRI != none)
-  {
-    if (GRI.ElapsedTime < 10) CriticalServerMessage("%bMatch Start%w Speed Boost %gActivated!%w");
-    else CriticalServerMessage("%bTrader%w Speed Boost %gActivated!%w");
-  }
-
   isBoostActive = true;
 
-  // TODO: Figure a better way than a foreach loop..
-  foreach DynamicActors(class'KFHumanPawn', Pawn)
+  for (C = Level.ControllerList; C != none; C = C.nextController)
   {
-    Pawn.default.GroundSpeed = SpeedBoost;
+    PC = PlayerController(C);
+    if (PC != none && PC.Pawn != none) class'Boost'.Static.GiveBoost(PC.Pawn);
   }
-}
-
-Function ResetTraderBoost()
-{
-  local KFHumanPawn Pawn;
-
-  MutLog("-----|| DEBUG - Trader Speed Boost Deactivated ||-----");
-
-  foreach DynamicActors(class'KFHumanPawn', Pawn)
-  {
-    Pawn.default.GroundSpeed = 200;
-  }
-
-  // Make sure to disable speed boost after trader ends
-  isBoostActive = false;
 }
 
 function TimeStampLog(coerce string s)
@@ -807,7 +783,7 @@ defaultproperties
 {
   // Mandatory Vars
   GroupName = "KF-ServerTools"
-  FriendlyName = "Server Tools - v1.4.2"
+  FriendlyName = "Server Tools - v1.4.3"
   Description = "Collection of cool features to empower your server; Made by Vel-San"
   bAddToServerPackages = true
   RemoteRole = ROLE_SimulatedProxy
