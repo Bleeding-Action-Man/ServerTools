@@ -722,7 +722,7 @@ function GiveTraderBoost()
   local PlayerController PC;
 
 
-  MutLog("-----|| DEBUG - Trader Speed Boost Activated ||-----");
+  MutLog("-----|| Trader Speed Boost Activated ||-----");
 
   isBoostActive = true;
 
