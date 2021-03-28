@@ -40,6 +40,20 @@ Collection of cool features to empower your server:
 [h1][b][u]Sample Config[/u][/b][/h1]
 
 [code]
+[KFServerTools.BoostMe]
+# Value for speed boost | Recommended: Between 500 - 1000 (More than 1000 and you'll become flash)
+iSpeedBoost=750
+# If this is set to anything above 0, you will get extra 'boost' time (duration) AFTER the wave has already started
+iAfterWaveStartBoost=0
+# Speed boost duration for match start | This is recommended to be 10 because countdown for match start is 10
+iMatchStartBoost=10
+# Message to show at MatchStart boost
+sMatchStartBoostMessage=%bMatch Start%w Speed Boost %tActivated!%w
+# Message to show at TraderTime boost
+sTraderBoostMessage=%bTrader%w Speed Boost %tActivated!%w
+# Controls whether the notification/message is global (On Screen) or in-chat
+bGlobalMSG=True
+
 [KFServerTools.KFServerTools]
 # If set to True, only special players can manipulate trader time!
 bAdminAndSelectPlayers=True
@@ -117,8 +131,8 @@ Optional, if you have ServerPerks installed:
 
 [h1][b][u]Manual Download Links (Recommended)[/u][/b][/h1]
 
-You can find it under 'Not-Whitelisted' folder named 'KF-ServerTools-v1.4.2'
+You can find it under 'Not-Whitelisted' folder named 'KF-ServerTools-v1.4.3'
 
 - MEGA Link: https://mega DOT nz/folder/YDoEmKiC#s6FGAtgh40-TvB4bHsLaMQ
 
-- Github: https://github.com/Vel-San/KF-ServerTools/releases/tag/v1.4.2
+- Github: https://github.com/Vel-San/KF-ServerTools/releases/tag/v1.4.3
