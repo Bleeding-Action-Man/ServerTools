@@ -40,7 +40,7 @@ function Timer()
 {
   if (bGlobalMSG) class'KFServerTools'.default.Mut.CriticalServerMessage(sBoostEndMessage);
   else class'KFServerTools'.default.Mut.ServerMessage(sBoostEndMessage);
-  Destroy();
+  Destroyed();
 }
 
 function Tick( float Delta )
@@ -50,12 +50,12 @@ function Tick( float Delta )
     if (bGlobalMSG) class'KFServerTools'.default.Mut.CriticalServerMessage(sBoostEndMessage);
     else class'KFServerTools'.default.Mut.ServerMessage(sBoostEndMessage);
     Disable('Timer');
-    Destroy();
+    Destroyed();
   }
   if (Instigator==None || Instigator.Health <= 0)
     {
       Disable('Timer');
-      Destroy();
+      Destroyed();
     }
 }
 
