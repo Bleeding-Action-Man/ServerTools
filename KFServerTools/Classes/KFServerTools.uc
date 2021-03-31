@@ -184,6 +184,24 @@ function CriticalServerMessage(string Msg)
   }
 }
 
+function TraderBoostServerMessage(string Msg, Pawn P)
+{
+  if (P != none)
+  {
+    SetColor(Msg);
+    P.ClientMessage(Msg);
+  }
+}
+
+function TraderBoostCriticalServerMessage(string Msg, Pawn P)
+{
+  if (P != none)
+  {
+    SetColor(Msg);
+    P.ClientMessage(Msg, 'CriticalEvent');
+  }
+}
+
 function Mutate(string command, PlayerController Sender)
 {
   local string PN, PID;
@@ -783,7 +801,7 @@ defaultproperties
 {
   // Mandatory Vars
   GroupName = "KF-ServerTools"
-  FriendlyName = "Server Tools - v1.4.3"
+  FriendlyName = "Server Tools - v1.4.4"
   Description = "Collection of cool features to empower your server; Made by Vel-San"
   bAddToServerPackages = true
   RemoteRole = ROLE_SimulatedProxy

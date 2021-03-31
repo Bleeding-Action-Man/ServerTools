@@ -22,15 +22,15 @@ function PostBeginPlay()
     if (GRI.ElapsedTime < 10)
     {
       // Match Start Boost
-      if (bGlobalMSG) class'KFServerTools'.default.Mut.CriticalServerMessage(sMatchStartBoostMessage);
-      else class'KFServerTools'.default.Mut.ServerMessage(sMatchStartBoostMessage);
+      if (bGlobalMSG) class'KFServerTools'.default.Mut.TraderBoostCriticalServerMessage(sMatchStartBoostMessage, Instigator);
+      else class'KFServerTools'.default.Mut.TraderBoostServerMessage(sMatchStartBoostMessage, Instigator);
       SetTimer(iMatchStartBoost, false); // Recommended 10 seconds is for wave start countdown
     }
     else
     {
       // Trader Time Boost
-      if (bGlobalMSG) class'KFServerTools'.default.Mut.CriticalServerMessage(sTraderBoostMessage);
-      else class'KFServerTools'.default.Mut.ServerMessage(sTraderBoostMessage);
+      if (bGlobalMSG) class'KFServerTools'.default.Mut.TraderBoostCriticalServerMessage(sTraderBoostMessage, Instigator);
+      else class'KFServerTools'.default.Mut.TraderBoostServerMessage(sTraderBoostMessage, Instigator);
       SetTimer(KFGT.TimeBetweenWaves + iAfterWaveStartBoost, false);
     }
   }
@@ -38,8 +38,8 @@ function PostBeginPlay()
 
 function Timer()
 {
-  if (bGlobalMSG) class'KFServerTools'.default.Mut.CriticalServerMessage(sBoostEndMessage);
-  else class'KFServerTools'.default.Mut.ServerMessage(sBoostEndMessage);
+  if (bGlobalMSG) class'KFServerTools'.default.Mut.TraderBoostCriticalServerMessage(sBoostEndMessage, Instigator);
+  else class'KFServerTools'.default.Mut.TraderBoostServerMessage(sBoostEndMessage, Instigator);
   Destroyed();
 }
 
@@ -47,14 +47,12 @@ function Tick( float Delta )
 {
   if ((KFGT.bWaveInProgress && bIsBoostActive) || KFGT.IsInState('PendingMatch') || KFGT.IsInState('GameEnded'))
   {
-    if (bGlobalMSG) class'KFServerTools'.default.Mut.CriticalServerMessage(sBoostEndMessage);
-    else class'KFServerTools'.default.Mut.ServerMessage(sBoostEndMessage);
-    Disable('Timer');
+    if (bGlobalMSG) class'KFServerTools'.default.Mut.TraderBoostCriticalServerMessage(sBoostEndMessage, Instigator);
+    else class'KFServerTools'.default.Mut.TraderBoostServerMessage(sBoostEndMessage, Instigator);
     Destroyed();
   }
   if (Instigator==None || Instigator.Health <= 0)
     {
-      Disable('Timer');
       Destroyed();
     }
 }
@@ -63,5 +61,7 @@ function Destroyed()
 {
   if (Instigator != None) Instigator.Health = Min(Instigator.Health, 100);
   bIsBoostActive = False;
+  Disable('Timer');
+  Disable('Tick');
 }
 
