@@ -80,10 +80,10 @@ function bool InternalOnPreDraw(Canvas C)
 {
   local float w, h, x, y;
 
-  w = ActualWidth() / 2;
-  h = ActualHeight() / 1.5;
-  y = ActualTop() + ActualHeight() * 0.01;
-  x = ActualLeft() + (ActualWidth() - w) / 0.01;
+  w = ActualWidth() / 2; // Increase Division to Decrease Width
+  h = ActualHeight() / 2.2; // Increase division to decrease height
+  y = ActualTop() + ActualHeight() * 0.02; // Increase Multiplication to move higher
+  x = ActualLeft() + ActualWidth() / 0.25; // Increase Division to move more to the left
   i_BGCenter.SetPosition(x, y, w, h, true);
 
   return Super.InternalOnPreDraw(C);
