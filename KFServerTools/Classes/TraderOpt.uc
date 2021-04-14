@@ -80,10 +80,10 @@ function bool InternalOnPreDraw(Canvas C)
 {
   local float w, h, x, y;
 
-  w = ActualWidth() / 1.5;
+  w = ActualWidth() / 2;
   h = ActualHeight() / 1.5;
-  y = ActualTop() + ActualHeight() * 0.15;
-  x = ActualLeft() + (ActualWidth() - w) / 2;
+  y = ActualTop() + ActualHeight() * 0.01;
+  x = ActualLeft() + (ActualWidth() - w) / 0.01;
   i_BGCenter.SetPosition(x, y, w, h, true);
 
   return Super.InternalOnPreDraw(C);
