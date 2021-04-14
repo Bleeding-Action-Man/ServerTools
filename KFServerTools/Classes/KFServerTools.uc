@@ -8,12 +8,12 @@
 class KFServerTools extends Mutator Config(KFServerTools);
 
 // Config Vars
-var() config bool bDebug, bAdminAndSelectPlayers, bServerPerksCompatibility, bApplyTraderBoost;
+var() config bool bDebug, bAdminAndSelectPlayers, bServerPerksCompatibility, bApplyTraderBoost, bOnlyVoteTraderGUI;
 var() config string sSkipTraderCmd, sVoteSkipTraderCmd, sCurrentTraderTimeCmd, sCustomTraderTimeCmd, sReviveListCmd, sReviveMeCmd, sReviveThemCmd;
 var() config int iDefaultTraderTime, iReviveCost, iVoteReset;
 
 // Tmp Vars
-var bool Debug, AdminAndSelectPlayers, ServerPerksCompatibility, ApplyTraderBoost, isBoostActive, VoteInProgress, IsTimerActive;
+var bool Debug, AdminAndSelectPlayers, ServerPerksCompatibility, ApplyTraderBoost, OnlyVoteTraderGUI, isBoostActive, VoteInProgress, IsTimerActive;
 var int DefaultTraderTime, ReviveCost, VoteReset;
 var string SkipTraderCmd, VoteSkipTraderCmd, CurrentTraderTimeCmd, CustomTraderTimeCmd, ReviveListCmd, ReviveMeCmd, ReviveThemCmd;
 var KFGameType KFGT;
@@ -42,7 +42,7 @@ var() config array<ColorRecord> ColorList; // Color list
 replication
 {
   unreliable if (Role == ROLE_Authority)
-                  Debug, AdminAndSelectPlayers, ServerPerksCompatibility, ApplyTraderBoost,
+                  Debug, AdminAndSelectPlayers, ServerPerksCompatibility, ApplyTraderBoost, OnlyVoteTraderGUI,
                   DefaultTraderTime, ReviveCost, VoteReset,
                   SkipTraderCmd, VoteSkipTraderCmd, CurrentTraderTimeCmd, CustomTraderTimeCmd, ReviveListCmd, ReviveMeCmd, ReviveThemCmd;
 }
@@ -62,6 +62,7 @@ simulated function PostBeginPlay()
   AdminAndSelectPlayers = bAdminAndSelectPlayers;
   ServerPerksCompatibility = bServerPerksCompatibility;
   ApplyTraderBoost = bApplyTraderBoost;
+  OnlyVoteTraderGUI = bOnlyVoteTraderGUI;
   VoteInProgress = false;
   IsTimerActive = false;
   isBoostActive = false;

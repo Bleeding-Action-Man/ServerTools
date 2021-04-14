@@ -63,6 +63,18 @@ function ShowPanel(bool bShow)
     // Revive related Info
     // Player Code EditBox
     ed_RevPlayer.SetComponentValue("", true);
+
+    // Disable Components if bOnlyVoteTraderGUI=True;
+    if (MutRef.OnlyVoteTraderGUI)
+    {
+      if(!MutRef.AdminAndSelectPlayers) DisableComponent(b_SkipTrader);
+      DisableComponent(b_RevSelf);
+      DisableComponent(b_RevAllPlayers);
+      DisableComponent(b_AllCommands);
+      DisableComponent(ed_RevPlayer);
+      DisableComponent(b_ShowDeadPlayers);
+      DisableComponent(b_Revive);
+    }
   }
 }
 
