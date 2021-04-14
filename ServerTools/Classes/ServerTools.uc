@@ -5,21 +5,21 @@
 // Made by Vel-San @ https://steamcommunity.com/id/Vel-San/
 //=============================================================================
 
-class KFServerTools extends Mutator Config(KFServerTools);
+class ServerTools extends Mutator Config(ServerTools_Config);
 
 // Config Vars
-var() config bool bDebug, bAdminAndSelectPlayers, bServerPerksCompatibility, bApplyTraderBoost;
+var() config bool bDebug, bAdminAndSelectPlayers, bServerPerksCompatibility, bApplyTraderBoost, bOnlyVoteTraderGUI;
 var() config string sSkipTraderCmd, sVoteSkipTraderCmd, sCurrentTraderTimeCmd, sCustomTraderTimeCmd, sReviveListCmd, sReviveMeCmd, sReviveThemCmd;
 var() config int iDefaultTraderTime, iReviveCost, iVoteReset;
 
 // Tmp Vars
-var bool Debug, AdminAndSelectPlayers, ServerPerksCompatibility, ApplyTraderBoost, isBoostActive, VoteInProgress, IsTimerActive;
+var bool Debug, AdminAndSelectPlayers, ServerPerksCompatibility, ApplyTraderBoost, OnlyVoteTraderGUI, isBoostActive, VoteInProgress, IsTimerActive;
 var int DefaultTraderTime, ReviveCost, VoteReset;
 var string SkipTraderCmd, VoteSkipTraderCmd, CurrentTraderTimeCmd, CustomTraderTimeCmd, ReviveListCmd, ReviveMeCmd, ReviveThemCmd;
 var KFGameType KFGT;
 var array<string> aPlayerIDs;
 var class<Object> STMenuType;
-var KFServerTools Mut;
+var ServerTools Mut;
 
 // Players to be marked as either VIP or Donator
 struct SP
@@ -42,7 +42,7 @@ var() config array<ColorRecord> ColorList; // Color list
 replication
 {
   unreliable if (Role == ROLE_Authority)
-                  Debug, AdminAndSelectPlayers, ServerPerksCompatibility, ApplyTraderBoost,
+                  Debug, AdminAndSelectPlayers, ServerPerksCompatibility, ApplyTraderBoost, OnlyVoteTraderGUI,
                   DefaultTraderTime, ReviveCost, VoteReset,
                   SkipTraderCmd, VoteSkipTraderCmd, CurrentTraderTimeCmd, CustomTraderTimeCmd, ReviveListCmd, ReviveMeCmd, ReviveThemCmd;
 }
@@ -55,13 +55,14 @@ simulated function PostBeginPlay()
   // Pointer To self
   Mut = self;
   default.Mut = self;
-  class'KFServerTools'.default.Mut = self;
+  class'ServerTools'.default.Mut = self;
 
   // Tmp Vars Initialization | I don't like working directly with Config vars (>.<)
   Debug = bDebug;
   AdminAndSelectPlayers = bAdminAndSelectPlayers;
   ServerPerksCompatibility = bServerPerksCompatibility;
   ApplyTraderBoost = bApplyTraderBoost;
+  OnlyVoteTraderGUI = bOnlyVoteTraderGUI;
   VoteInProgress = false;
   IsTimerActive = false;
   isBoostActive = false;
@@ -801,7 +802,7 @@ defaultproperties
 {
   // Mandatory Vars
   GroupName = "KF-ServerTools"
-  FriendlyName = "Server Tools - v1.4.4"
+  FriendlyName = "Server Tools - v1.5"
   Description = "Collection of cool features to empower your server; Made by Vel-San"
   bAddToServerPackages = true
   RemoteRole = ROLE_SimulatedProxy
@@ -817,6 +818,7 @@ defaultproperties
   // bAdminAndSelectPlayers = True
   // bServerPerksCompatibility = False
   // bApplyTraderBoost = True
+  // bOnlyVoteTraderGUI = False
   // sSkipTraderCmd = "skip"
   // sVoteSkipTraderCmd = "voteskip"
   // sCurrentTraderTimeCmd = "tt"
