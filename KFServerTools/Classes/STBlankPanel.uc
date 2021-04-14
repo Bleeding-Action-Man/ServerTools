@@ -1,10 +1,10 @@
-class STBlankPanel extends MidGamePanel DependsOn(KFServerTools);
+class STBlankPanel extends MidGamePanel DependsOn(ServerTools);
 
 var noexport bool bNetGame;
 var string PlayerStyleName;
 var GUIStyles PlayerStyle;
 
-var KFServerTools MutRef;
+var ServerTools MutRef;
 
 function InitComponent(GUIController MyController, GUIComponent MyOwner)
 {

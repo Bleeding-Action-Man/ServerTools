@@ -5,7 +5,7 @@
 // Made by Vel-San @ https://steamcommunity.com/id/Vel-San/
 //=============================================================================
 
-class KFServerTools extends Mutator Config(KFServerTools);
+class ServerTools extends Mutator Config(ServerTools_Config);
 
 // Config Vars
 var() config bool bDebug, bAdminAndSelectPlayers, bServerPerksCompatibility, bApplyTraderBoost, bOnlyVoteTraderGUI;
@@ -19,7 +19,7 @@ var string SkipTraderCmd, VoteSkipTraderCmd, CurrentTraderTimeCmd, CustomTraderT
 var KFGameType KFGT;
 var array<string> aPlayerIDs;
 var class<Object> STMenuType;
-var KFServerTools Mut;
+var ServerTools Mut;
 
 // Players to be marked as either VIP or Donator
 struct SP
@@ -55,7 +55,7 @@ simulated function PostBeginPlay()
   // Pointer To self
   Mut = self;
   default.Mut = self;
-  class'KFServerTools'.default.Mut = self;
+  class'ServerTools'.default.Mut = self;
 
   // Tmp Vars Initialization | I don't like working directly with Config vars (>.<)
   Debug = bDebug;
@@ -802,7 +802,7 @@ defaultproperties
 {
   // Mandatory Vars
   GroupName = "KF-ServerTools"
-  FriendlyName = "Server Tools - v1.4.4"
+  FriendlyName = "Server Tools - v1.5"
   Description = "Collection of cool features to empower your server; Made by Vel-San"
   bAddToServerPackages = true
   RemoteRole = ROLE_SimulatedProxy
@@ -818,6 +818,7 @@ defaultproperties
   // bAdminAndSelectPlayers = True
   // bServerPerksCompatibility = False
   // bApplyTraderBoost = True
+  // bOnlyVoteTraderGUI = False
   // sSkipTraderCmd = "skip"
   // sVoteSkipTraderCmd = "voteskip"
   // sCurrentTraderTimeCmd = "tt"

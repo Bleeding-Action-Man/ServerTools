@@ -1,4 +1,4 @@
-class ST_Tab extends STBlankPanel DependsOn(KFServerTools);
+class ST_Tab extends STBlankPanel DependsOn(ServerTools);
 
 // Left Box
 var automated GUISectionBackground Left_Back_Ground;
@@ -46,7 +46,7 @@ function ShowPanel(bool bShow)
 {
   Super.ShowPanel(bShow);
 
-  MutRef = class'KFServerTools'.default.Mut;
+  MutRef = class'ServerTools'.default.Mut;
   if (bShow)
   {
     // Default Trader EditBox
@@ -82,7 +82,7 @@ function UpdateDefaultTraderTime(PlayerController TmpPC)
 {
   local string Cmd;
 
-  cmd = class'KFServerTools'.default.Mut.CustomTraderTimeCmd$ " " $ed_DefaultTrader.GetComponentValue();
+  cmd = class'ServerTools'.default.Mut.CustomTraderTimeCmd$ " " $ed_DefaultTrader.GetComponentValue();
   TmpPC.ServerMutate(cmd);
 }
 
@@ -90,7 +90,7 @@ function UpdateCurrentTraderTime(PlayerController TmpPC)
 {
   local string Cmd;
 
-  cmd = class'KFServerTools'.default.Mut.CurrentTraderTimeCmd$ " " $ed_CurrentTrader.GetComponentValue();
+  cmd = class'ServerTools'.default.Mut.CurrentTraderTimeCmd$ " " $ed_CurrentTrader.GetComponentValue();
   TmpPC.ServerMutate(cmd);
 }
 
@@ -98,7 +98,7 @@ function PrintDeadPlayers(PlayerController TmpPC)
 {
   local string Cmd;
 
-  cmd = class'KFServerTools'.default.Mut.ReviveListCmd;
+  cmd = class'ServerTools'.default.Mut.ReviveListCmd;
   TmpPC.ServerMutate(cmd);
 }
 
@@ -106,7 +106,7 @@ function RevivePlayerByCode(PlayerController TmpPC)
 {
   local string Cmd;
 
-  cmd = class'KFServerTools'.default.Mut.ReviveThemCmd$ " " $ed_RevPlayer.GetComponentValue();
+  cmd = class'ServerTools'.default.Mut.ReviveThemCmd$ " " $ed_RevPlayer.GetComponentValue();
   TmpPC.ServerMutate(cmd);
 }
 
@@ -114,7 +114,7 @@ function SkipTraderMutate(PlayerController TmpPC)
 {
   local string Cmd;
 
-  cmd = class'KFServerTools'.default.Mut.SkipTraderCmd;
+  cmd = class'ServerTools'.default.Mut.SkipTraderCmd;
   TmpPC.ServerMutate(cmd);
 }
 
@@ -122,7 +122,7 @@ function VoteSkipTraderMutate(PlayerController TmpPC)
 {
   local string Cmd;
 
-  cmd = class'KFServerTools'.default.Mut.VoteSkipTraderCmd;
+  cmd = class'ServerTools'.default.Mut.VoteSkipTraderCmd;
   TmpPC.ServerMutate(cmd);
 }
 
@@ -130,7 +130,7 @@ function RevSelfMutate(PlayerController TmpPC)
 {
   local string Cmd;
 
-  cmd = class'KFServerTools'.default.Mut.ReviveMeCmd;
+  cmd = class'ServerTools'.default.Mut.ReviveMeCmd;
   TmpPC.ServerMutate(cmd);
 }
 
@@ -138,7 +138,7 @@ function RevAllMutate(PlayerController TmpPC)
 {
   local string Cmd;
 
-  cmd = class'KFServerTools'.default.Mut.ReviveThemCmd$ " all";
+  cmd = class'ServerTools'.default.Mut.ReviveThemCmd$ " all";
   TmpPC.ServerMutate(cmd);
 }
 
