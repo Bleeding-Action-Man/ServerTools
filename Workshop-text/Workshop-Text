@@ -68,7 +68,7 @@ bApplyTraderBoost=True
 # If set to True, all GUI components will be 'Disabled' except
 # Default Trader + Current Trader (If bAdminAndSelectPlayers=True) & Vote Skip Trader (Always enabled).
 # Recommended 'True' for new-player friendly servers
-bOnlyVoteTraderGUI=True
+bOnlyVoteTraderGUI=False
 # Command to be used to skip the whole trader time of current wave
 sSkipTraderCmd=skip
 # Command to be used when you want to start a skip trader vote, instead of instantly skipping regardless of others
