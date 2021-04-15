@@ -8,17 +8,16 @@
 class ServerTools extends Mutator Config(ServerTools_Config);
 
 // Config Vars
-var() config bool bDebug, bAdminAndSelectPlayers, bServerPerksCompatibility, bApplyTraderBoost, bOnlyVoteTraderGUI;
+var() config bool bDebug, bAdminAndSelectPlayers, bInjectMenu, bApplyTraderBoost, bOnlyVoteTraderGUI;
 var() config string sSkipTraderCmd, sVoteSkipTraderCmd, sCurrentTraderTimeCmd, sCustomTraderTimeCmd, sReviveListCmd, sReviveMeCmd, sReviveThemCmd;
 var() config int iDefaultTraderTime, iReviveCost, iVoteReset;
 
 // Tmp Vars
-var bool Debug, AdminAndSelectPlayers, ServerPerksCompatibility, ApplyTraderBoost, OnlyVoteTraderGUI, isBoostActive, VoteInProgress, IsTimerActive;
+var bool Debug, AdminAndSelectPlayers, InjectMenu, bInjected, ApplyTraderBoost, OnlyVoteTraderGUI, isBoostActive, VoteInProgress, IsTimerActive;
 var int DefaultTraderTime, ReviveCost, VoteReset;
 var string SkipTraderCmd, VoteSkipTraderCmd, CurrentTraderTimeCmd, CustomTraderTimeCmd, ReviveListCmd, ReviveMeCmd, ReviveThemCmd;
 var KFGameType KFGT;
 var array<string> aPlayerIDs;
-var class<Object> STMenuType;
 var ServerTools Mut;
 
 // Players to be marked as either VIP or Donator
@@ -42,7 +41,7 @@ var() config array<ColorRecord> ColorList; // Color list
 replication
 {
   unreliable if (Role == ROLE_Authority)
-                  Debug, AdminAndSelectPlayers, ServerPerksCompatibility, ApplyTraderBoost, OnlyVoteTraderGUI,
+                  Debug, AdminAndSelectPlayers, InjectMenu, ApplyTraderBoost, OnlyVoteTraderGUI,
                   DefaultTraderTime, ReviveCost, VoteReset,
                   SkipTraderCmd, VoteSkipTraderCmd, CurrentTraderTimeCmd, CustomTraderTimeCmd, ReviveListCmd, ReviveMeCmd, ReviveThemCmd;
 }
@@ -60,7 +59,7 @@ simulated function PostBeginPlay()
   // Tmp Vars Initialization | I don't like working directly with Config vars (>.<)
   Debug = bDebug;
   AdminAndSelectPlayers = bAdminAndSelectPlayers;
-  ServerPerksCompatibility = bServerPerksCompatibility;
+  InjectMenu = bInjectMenu;
   ApplyTraderBoost = bApplyTraderBoost;
   OnlyVoteTraderGUI = bOnlyVoteTraderGUI;
   VoteInProgress = false;
@@ -78,9 +77,6 @@ simulated function PostBeginPlay()
   VoteReset = iVoteReset;
   KFGT = KFGameType(Level.Game);
 
-  // Add Server Tools tab to ESC-Menu
-  if (!ServerPerksCompatibility) InjectNewMenu(STMenuType);
-
   if(KFGT == none) MutLog("-----|| KFGameType not found! ||-----");
 
   // Fill in the Dynamic Array of Special Players
@@ -97,17 +93,17 @@ simulated function PostBeginPlay()
 
   if(Debug)
   {
-    MutLog("-----|| DEBUG - DefaultTraderTime: " $DefaultTraderTime$ " ||-----");
-    MutLog("-----|| DEBUG - AdminAndSelectPlayers: " $AdminAndSelectPlayers$ " ||-----");
-    MutLog("-----|| DEBUG - SkipTraderCmd: " $SkipTraderCmd$ " ||-----");
-    MutLog("-----|| DEBUG - VoteSkipTraderCmd: " $VoteSkipTraderCmd$ " ||-----");
-    MutLog("-----|| DEBUG - CurrentTraderTimeCmd: " $CurrentTraderTimeCmd$ " ||-----");
-    MutLog("-----|| DEBUG - CustomTraderTimeCmd: " $CustomTraderTimeCmd$ " ||-----");
-    MutLog("-----|| DEBUG - ReviveListCmd: " $ReviveListCmd$ " ||-----");
-    MutLog("-----|| DEBUG - ReviveMeCmd: " $ReviveMeCmd$ " ||-----");
-    MutLog("-----|| DEBUG - ReviveThemCmd: " $ReviveThemCmd$ " ||-----");
-    MutLog("-----|| DEBUG - ReviveCost: " $ReviveCost$ " ||-----");
-    MutLog("-----|| DEBUG - # Of Special Players Players: " $SpecialPlayers.Length$ " ||-----");
+    MutLog("-----|| DefaultTraderTime: " $DefaultTraderTime$ " ||-----");
+    MutLog("-----|| AdminAndSelectPlayers: " $AdminAndSelectPlayers$ " ||-----");
+    MutLog("-----|| SkipTraderCmd: " $SkipTraderCmd$ " ||-----");
+    MutLog("-----|| VoteSkipTraderCmd: " $VoteSkipTraderCmd$ " ||-----");
+    MutLog("-----|| CurrentTraderTimeCmd: " $CurrentTraderTimeCmd$ " ||-----");
+    MutLog("-----|| CustomTraderTimeCmd: " $CustomTraderTimeCmd$ " ||-----");
+    MutLog("-----|| ReviveListCmd: " $ReviveListCmd$ " ||-----");
+    MutLog("-----|| ReviveMeCmd: " $ReviveMeCmd$ " ||-----");
+    MutLog("-----|| ReviveThemCmd: " $ReviveThemCmd$ " ||-----");
+    MutLog("-----|| ReviveCost: " $ReviveCost$ " ||-----");
+    MutLog("-----|| # Of Special Players Players: " $SpecialPlayers.Length$ " ||-----");
   }
 
   if (DefaultTraderTime > 0)
@@ -131,8 +127,11 @@ function Timer()
 }
 
 // Tick to reset votes + Give Trader Speed Boost
-function Tick(float DeltaTime)
+simulated function Tick(float DeltaTime)
 {
+  // Add Server Tools tab to ESC-Menu
+  if (InjectMenu && !bInjected) InjectNewMenu();
+
   if (!KFGT.bWaveInProgress && !KFGT.IsInState('PendingMatch') && !KFGT.IsInState('GameEnded') && ApplyTraderBoost)
   {
     if(!isBoostActive) GiveTraderBoost();
@@ -216,7 +215,7 @@ function Mutate(string command, PlayerController Sender)
   PN = Sender.PlayerReplicationInfo.PlayerName;
   PID = Sender.GetPlayerIDHash();
 
-  if(Debug) MutLog("-----|| DEBUG - '" $command$ "' accessed by: " $PN$ " | PID: " $PID$  " ||-----");
+  if(Debug) MutLog("-----|| '" $command$ "' accessed by: " $PN$ " | PID: " $PID$  " ||-----");
 
   SplitStringToArray(SplitCMD, command, " ");
 
@@ -304,7 +303,7 @@ function Mutate(string command, PlayerController Sender)
   }
   else
   {
-    if(Debug) MutLog("-----|| DEBUG - WARNING! SkipTrader Mutate is available for everybody - chance for trolls messing up your game! ||-----");
+    if(Debug) MutLog("-----|| WARNING! SkipTrader Mutate is available for everybody - chance for trolls messing up your game! ||-----");
   }
 
   // Skip the trader by setting wave countdown to 6 instantly
@@ -431,7 +430,7 @@ function bool StartSkipVote(PlayerController TmpPC)
     }
     if(aPlayerIDs.length == GetActualPlayers())
     {
-      if(Debug) MutLog("-----|| DEBUG - All votes have been collected to skip trader | Timer Disabled ||-----");
+      if(Debug) MutLog("-----|| All votes have been collected to skip trader | Timer Disabled ||-----");
       KFGT.WaveCountDown = 6;
       aPlayerIDs.length = 0;
       return true;
@@ -681,15 +680,17 @@ final function bool FindSteamID(out int i, string ID)
 }
 
 // Edit ESC-Menu to inject new Trader Opt. Menu
-final function InjectNewMenu(class<Object> MenuName)
+simulated function InjectNewMenu()
 {
-  local PlayerController TmpPC;
+  local PlayerController localController;
 
-  KFGT.LoginMenuClass = string(MenuName);
+  bInjected = True;
+  if(Debug) MutLog("-----|| Injecting ServerTools GUI Menu ||-----");
 
-  ForEach DynamicActors(class'PlayerController', TmpPC)
+  localController= Level.GetLocalPlayerController();
+  if (localController != none)
   {
-    TmpPC.MidGameMenuClass = "STInvasionLoginMenu";
+    localController.Player.InteractionMaster.AddInteraction("ServerTools.STInteraction", localController.Player);
   }
 }
 
@@ -731,7 +732,7 @@ function int GetActualPlayers()
       i++;
     }
   }
-  if(Debug) MutLog("-----|| DEBUG - Actual Players Count: " $i$ " ||-----");
+  if(Debug) MutLog("-----|| Actual Players Count: " $i$ " ||-----");
   return i;
 }
 
@@ -754,12 +755,12 @@ function GiveTraderBoost()
 
 function TimeStampLog(coerce string s)
 {
-  log("["$Level.TimeSeconds$"s]" @ s, 'SkipTrader');
+  log("["$Level.TimeSeconds$"s]" @ s, 'ServerTools');
 }
 
 function MutLog(string s)
 {
-  log(s, 'SkipTrader');
+  log(s, 'ServerTools');
 }
 
 /////////////////////////////////////////////////////////////////////////
@@ -809,14 +810,11 @@ defaultproperties
   bAlwaysRelevant = true
   bNetNotify=true
 
-  // Inject new ESC-Menu Tab
-  STMenuType=class'STInvasionLoginMenu'
-
   // Mut Vars
   // Below are just a sample of default config
   // bDebug = False
   // bAdminAndSelectPlayers = True
-  // bServerPerksCompatibility = False
+  // bInjectMenu = False
   // bApplyTraderBoost = True
   // bOnlyVoteTraderGUI = False
   // sSkipTraderCmd = "skip"

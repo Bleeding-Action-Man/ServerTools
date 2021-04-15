@@ -1,4 +1,6 @@
-class ST_Tab extends MidGamePanel DependsOn(ServerTools);
+// Same class as ST_Tab_SP but compatible with ServerPerks
+
+class ST_Tab_SP extends MidGamePanel DependsOn(ServerTools);
 
 // Left Box
 var automated GUISectionBackground Left_Back_Ground;
@@ -49,23 +51,23 @@ function ShowPanel(bool bShow)
   MutRef = class'ServerTools'.default.Mut;
   if (bShow)
   {
-    // Default Trader EditBox
-    ed_DefaultTrader.SetComponentValue(MutRef.DefaultTraderTime, true);
-    if (MutRef.AdminAndSelectPlayers) b_ApplyButton.Caption = AdminsOnlyApplyText;
+  // Default Trader EditBox
+  ed_DefaultTrader.SetComponentValue(MutRef.DefaultTraderTime, true);
+  if (MutRef.AdminAndSelectPlayers) b_ApplyButton.Caption = AdminsOnlyApplyText;
 
-    // Current Trader EditBox
-    ed_CurrentTrader.SetComponentValue(120, true);
-    if (MutRef.AdminAndSelectPlayers) b_ApplyButton2.Caption = AdminsOnlyApplyText;
+  // Current Trader EditBox
+  ed_CurrentTrader.SetComponentValue(120, true);
+  if (MutRef.AdminAndSelectPlayers) b_ApplyButton2.Caption = AdminsOnlyApplyText;
 
-    // SkipTrader
-    if (MutRef.AdminAndSelectPlayers) b_SkipTrader.Caption = AdminsOnlySkipTraderText;
+  // SkipTrader
+  if (MutRef.AdminAndSelectPlayers) b_SkipTrader.Caption = AdminsOnlySkipTraderText;
 
-    // Revive related Info
-    // Player Code EditBox
-    ed_RevPlayer.SetComponentValue("", true);
+  // Revive related Info
+  // Player Code EditBox
+  ed_RevPlayer.SetComponentValue("", true);
 
-    // Disable Components if bOnlyVoteTraderGUI=True;
-    if (MutRef.OnlyVoteTraderGUI)
+  // Disable Components if bOnlyVoteTraderGUI=True;
+  if (MutRef.OnlyVoteTraderGUI)
     {
       // Left Box
       if(!MutRef.AdminAndSelectPlayers) DisableComponent(ed_DefaultTrader);
@@ -215,150 +217,150 @@ function FillPlayerLists() {
 defaultproperties
 {
   Begin Object Class=GUISectionBackground Name=Left_BG
-    // bFillClient=True
-    Caption="Trader manipulation & revive"
-    WinTop=0.05
-    WinLeft=0.05
-    WinWidth=0.5
-    WinHeight=0.8
+  // bFillClient=True
+  Caption="Trader manipulation & revive"
+  WinTop=0.05
+  WinLeft=0.05
+  WinWidth=0.5
+  WinHeight=0.8
   End Object
-  Left_Back_Ground=GUISectionBackground'ST_Tab.Left_BG'
+  Left_Back_Ground=GUISectionBackground'ST_Tab_SP.Left_BG'
 
   Begin Object Class=GUISectionBackground Name=Right_BG
-    // bFillClient=True
-    Caption="Voting, global revive & Help"
-    WinTop=0.05
-    WinLeft=0.6
-    WinWidth=0.3
-    WinHeight=0.5
+  // bFillClient=True
+  Caption="Voting, global revive & Help"
+  WinTop=0.05
+  WinLeft=0.6
+  WinWidth=0.3
+  WinHeight=0.5
   End Object
-  Right_Back_Ground=GUISectionBackground'ST_Tab.Right_BG'
+  Right_Back_Ground=GUISectionBackground'ST_Tab_SP.Right_BG'
 
   Begin Object Class=moEditBox Name=DefaultTraderTime
-    Caption="Default Trader Time: "
-    Hint="Changes the default time for trader for the whole match; Must be between <6-255>"
-    bBoundToParent=True
-    bScaleToParent=True
-    TabOrder=0
+  Caption="Default Trader Time: "
+  Hint="Changes the default time for trader for the whole match; Must be between <6-255>"
+  bBoundToParent=True
+  bScaleToParent=True
+  TabOrder=0
   End Object
   ed_DefaultTrader=DefaultTraderTime
 
   Begin Object Class=GUIButton Name=Apply
-    Caption="Apply"
-    Hint="Apply new default trader time; You might not have permission for this!"
-    TabOrder=1
-    bBoundToParent=True
-    bScaleToParent=True
-    OnClick=ST_Tab.ClickOfAButton
-    OnKeyEvent=Apply.InternalOnKeyEvent
+  Caption="Apply"
+  Hint="Apply new default trader time; You might not have permission for this!"
+  TabOrder=1
+  // bBoundToParent=True
+  // bScaleToParent=True
+  OnClick=ST_Tab_SP.ClickOfAButton
+  OnKeyEvent=Apply.InternalOnKeyEvent
   End Object
-  b_ApplyButton=GUIButton'ST_Tab.Apply'
+  b_ApplyButton=GUIButton'ST_Tab_SP.Apply'
 
   Begin Object Class=moEditBox Name=CurrentTraderTime
-    Caption="Current Trader Time: "
-    Hint="Changes the current time for trader; Must be between <6-255>"
-    bBoundToParent=True
-    bScaleToParent=True
-    TabOrder=2
+  Caption="Current Trader Time: "
+  Hint="Changes the current time for trader; Must be between <6-255>"
+  bBoundToParent=True
+  bScaleToParent=True
+  TabOrder=2
   End Object
   ed_CurrentTrader=CurrentTraderTime
 
   Begin Object Class=GUIButton Name=Apply2
-    Caption="Apply"
-    Hint="Instantly change current trader time; You might not have permission for this!"
-    TabOrder=3
-    bBoundToParent=True
-    bScaleToParent=True
-    OnClick=ST_Tab.ClickOfAButton
-    OnKeyEvent=Apply2.InternalOnKeyEvent
+  Caption="Apply"
+  Hint="Instantly change current trader time; You might not have permission for this!"
+  TabOrder=3
+  bBoundToParent=True
+  bScaleToParent=True
+  OnClick=ST_Tab_SP.ClickOfAButton
+  OnKeyEvent=Apply2.InternalOnKeyEvent
   End Object
-  b_ApplyButton2=GUIButton'ST_Tab.Apply2'
+  b_ApplyButton2=GUIButton'ST_Tab_SP.Apply2'
 
   Begin Object Class=moEditBox Name=RevivePlayer
-    Caption="Revive player by code: "
-    Hint="Enter a player code to revive them, if you have enough Do$h"
-    bBoundToParent=True
-    bScaleToParent=True
-    TabOrder=4
+  Caption="Revive player by code: "
+  Hint="Enter a player code to revive them, if you have enough Do$h"
+  bBoundToParent=True
+  bScaleToParent=True
+  TabOrder=4
   End Object
   ed_RevPlayer=RevivePlayer
 
   Begin Object Class=GUIButton Name=PrintRevList
-    Caption="Show Player Codes"
-    Hint="Prints all dead player codes to revive them"
-    TabOrder=5
-    bBoundToParent=True
-    bScaleToParent=True
-    OnClick=ST_Tab.ClickOfAButton
-    OnKeyEvent=PrintRevList.InternalOnKeyEvent
+  Caption="Show Player Codes"
+  Hint="Prints all dead player codes to revive them"
+  TabOrder=5
+  bBoundToParent=True
+  bScaleToParent=True
+  OnClick=ST_Tab_SP.ClickOfAButton
+  OnKeyEvent=PrintRevList.InternalOnKeyEvent
   End Object
-  b_ShowDeadPlayers=GUIButton'ST_Tab.PrintRevList'
+  b_ShowDeadPlayers=GUIButton'ST_Tab_SP.PrintRevList'
 
   Begin Object Class=GUIButton Name=ReviveDeadPlayer
-    Caption="Revive"
-    Hint="If you have dosh, the player with the respective code will be revived"
-    TabOrder=6
-    bBoundToParent=True
-    bScaleToParent=True
-    OnClick=ST_Tab.ClickOfAButton
-    OnKeyEvent=ReviveDeadPlayer.InternalOnKeyEvent
+  Caption="Revive"
+  Hint="If you have dosh, the player with the respective code will be revived"
+  TabOrder=6
+  bBoundToParent=True
+  bScaleToParent=True
+  OnClick=ST_Tab_SP.ClickOfAButton
+  OnKeyEvent=ReviveDeadPlayer.InternalOnKeyEvent
   End Object
-  b_Revive=GUIButton'ST_Tab.ReviveDeadPlayer'
+  b_Revive=GUIButton'ST_Tab_SP.ReviveDeadPlayer'
 
   Begin Object Class=GUIButton Name=SkipTrader
-    Caption="Skip Trader"
-    Hint="Instantly skip trader; You might not have permission to use this !"
-    TabOrder=7
-    bBoundToParent=True
-    bScaleToParent=True
-    OnClick=ST_Tab.ClickOfAButton
-    OnKeyEvent=SkipTrader.InternalOnKeyEvent
+  Caption="Skip Trader"
+  Hint="Instantly skip trader; You might not have permission to use this !"
+  TabOrder=7
+  bBoundToParent=True
+  bScaleToParent=True
+  OnClick=ST_Tab_SP.ClickOfAButton
+  OnKeyEvent=SkipTrader.InternalOnKeyEvent
   End Object
-  b_SkipTrader=GUIButton'ST_Tab.SkipTrader'
+  b_SkipTrader=GUIButton'ST_Tab_SP.SkipTrader'
 
   Begin Object Class=GUIButton Name=VoteSkipTrader
-    Caption="Start Vote to Skip Trader"
-    Hint="Start a vote when you're ready to skip trader, everyone has access to this. Once clicked, a vote message will show for all players."
-    TabOrder=8
-    bBoundToParent=True
-    bScaleToParent=True
-    OnClick=ST_Tab.ClickOfAButton
-    OnKeyEvent=VoteSkipTrader.InternalOnKeyEvent
+  Caption="Start Vote to Skip Trader"
+  Hint="Start a vote when you're ready to skip trader, everyone has access to this. Once clicked, a vote message will show for all players."
+  TabOrder=8
+  bBoundToParent=True
+  bScaleToParent=True
+  OnClick=ST_Tab_SP.ClickOfAButton
+  OnKeyEvent=VoteSkipTrader.InternalOnKeyEvent
   End Object
-  b_VoteSkipTrader=GUIButton'ST_Tab.VoteSkipTrader'
+  b_VoteSkipTrader=GUIButton'ST_Tab_SP.VoteSkipTrader'
 
   Begin Object Class=GUIButton Name=RevSelf
-    Caption="Revive Yourself"
-    Hint="Once clicked, you will revive for the cost of Dosh; dosh will be taken from you."
-    TabOrder=9
-    bBoundToParent=True
-    bScaleToParent=True
-    OnClick=ST_Tab.ClickOfAButton
-    OnKeyEvent=RevSelf.InternalOnKeyEvent
+  Caption="Revive Yourself"
+  Hint="Once clicked, you will revive for the cost of Dosh; dosh will be taken from you."
+  TabOrder=9
+  bBoundToParent=True
+  bScaleToParent=True
+  OnClick=ST_Tab_SP.ClickOfAButton
+  OnKeyEvent=RevSelf.InternalOnKeyEvent
   End Object
-  b_RevSelf=GUIButton'ST_Tab.RevSelf'
+  b_RevSelf=GUIButton'ST_Tab_SP.RevSelf'
 
   Begin Object Class=GUIButton Name=RevAllPlayers
-    Caption="Revive All Dead Players"
-    Hint="Once clicked, you will revive all dead players for the cost of Dosh; dosh will be taken from you."
-    TabOrder=10
-    bBoundToParent=True
-    bScaleToParent=True
-    OnClick=ST_Tab.ClickOfAButton
-    OnKeyEvent=RevAllPlayers.InternalOnKeyEvent
+  Caption="Revive All Dead Players"
+  Hint="Once clicked, you will revive all dead players for the cost of Dosh; dosh will be taken from you."
+  TabOrder=10
+  bBoundToParent=True
+  bScaleToParent=True
+  OnClick=ST_Tab_SP.ClickOfAButton
+  OnKeyEvent=RevAllPlayers.InternalOnKeyEvent
   End Object
-  b_RevAllPlayers=GUIButton'ST_Tab.RevAllPlayers'
+  b_RevAllPlayers=GUIButton'ST_Tab_SP.RevAllPlayers'
 
   Begin Object Class=GUIButton Name=AllCommands
-    Caption="Help"
-    Hint="Print a list of all mutate commands | Commands are used in console, not in chat!"
-    TabOrder=11
-    bBoundToParent=True
-    bScaleToParent=True
-    OnClick=ST_Tab.ClickOfAButton
-    OnKeyEvent=AllCommands.InternalOnKeyEvent
+  Caption="Help"
+  Hint="Print a list of all mutate commands | Commands are used in console, not in chat!"
+  TabOrder=11
+  bBoundToParent=True
+  bScaleToParent=True
+  OnClick=ST_Tab_SP.ClickOfAButton
+  OnKeyEvent=AllCommands.InternalOnKeyEvent
   End Object
-  b_AllCommands=GUIButton'ST_Tab.AllCommands'
+  b_AllCommands=GUIButton'ST_Tab_SP.AllCommands'
 
   AdminsOnlyApplyText = "Apply | Admins Only"
   AdminsOnlySkipTraderText = "Skip Trader | Admin Only"

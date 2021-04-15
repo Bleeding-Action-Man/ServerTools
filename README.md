@@ -18,7 +18,7 @@ Collection of cool features to empower your server:
 - New 'ESC-MENU' tab for trader manipulation + revival options
 - Global notifications to improve user experience
 - User friendly customization
-- Semi-ServerPerks support (in-code check, however, you need to replace 1 ServerPerks file with the one i provide you, because SP is overriding all ESC-Menu muts)
+- Full ServerPerks support
 
 
 This mut wouldn't be alive if it wasn't for/Credits to:

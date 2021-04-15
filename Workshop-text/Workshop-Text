@@ -16,10 +16,8 @@ Collection of cool features to empower your server:
 - New 'ESC-MENU' tab for trader manipulation + revival options
 - Global notifications to improve user experience
 - User friendly customization
-- Semi-ServerPerks support (in-code check, however, you need to replace 1 ServerPerks file with the one i provide you, because SP is overriding all ESC-Menu muts)
-- Trader speed boost (Activates once a wave is done, also, on the start of a match before the timer begins)
 
-[b]This mut wouldn't be alive if it wasn't for/Credits to[/b]
+[b]Credits[/b]
 
 - AdminMut
 - Trader Mut
@@ -28,10 +26,14 @@ Collection of cool features to empower your server:
 - ScrN (Code Reference)
 - 2 Sirens 1 Cup
 
+[h1][b][u]Whitelist status[/u][/b][/h1]
+
+- NO & don't ask for Whitelisting it. Do that by yourself (Yes, It can be whitelisted)
+
 [h1][b][u]Notes[/u][/b][/h1]
 
-- Mut has been tested on 1080 and 720 resolutions, to me it was visible perfectly fine
-- Mut is [b]NOT-WHITELISTED[/b]
+- 100% Support for 1080p & 720p resolutions
+- 100% Support for ServerPerks
 
 [h1][b][u]Number Of Files[/u][/b][/h1]
 
@@ -59,15 +61,14 @@ bGlobalMSG=True
 [ServerTools.ServerTools]
 # If set to True, only special players can manipulate trader time!
 bAdminAndSelectPlayers=True
-# If Set to True, you have to use the Custom ServerPerks from the workshop description
-# This will replace the 'Help' section, because who the fuck uses that section anyways?
-bServerPerksCompatibility=False
+# If set to True, new ServerTools tab will be added in your ESC Menu
+bInjectMenu=True
 # Increase speed of all players once trader time starts
 bApplyTraderBoost=True
 # If set to True, all GUI components will be 'Disabled' except
-# Default Trader, Current Trader & Vote Skip Trader.
-# Recommended 'True' if you want to disable GUI for new players
-bOnlyVoteTraderGUI=False
+# Default Trader + Current Trader (If bAdminAndSelectPlayers=True) & Vote Skip Trader (Always enabled).
+# Recommended 'True' for new-player friendly servers
+bOnlyVoteTraderGUI=True
 # Command to be used to skip the whole trader time of current wave
 sSkipTraderCmd=skip
 # Command to be used when you want to start a skip trader vote, instead of instantly skipping regardless of others
@@ -84,7 +85,7 @@ sReviveListCmd=dpl
 # Player Rev Code doesn't have to be 100% accurate, just put at least 3 numbers
 sReviveThemCmd=rev
 # Default trader time
-iDefaultTraderTime=60
+iDefaultTraderTime=120
 # Cost for a single revive, if you have the Dosh, we give you the revive!
 iReviveCost=300
 # Timer on which the collected votes will reset, if the trader skip vote didn't pass
@@ -119,14 +120,6 @@ Optional, if you have ServerPerks installed:
 1- Subscribe or download manually (Recommended)
 2- Launch the game and wait to see 'Completed'
 3- Restart the game and you can see the mutators in your list
-
-
-[i]If you have ServerPerks Installed[/i]
-
-- MANUALLY Download from below links
-- In ServerTools_Config.ini, 'bServerPerksCompatibility' to [b]TRUE[/b]
-- Replace your current ServerPerks.u with the one provided in the .zip
-- If you're hosting a server, you need to compress ServerPerks.u again
 
 [h1][b][u]Class Names[/u][/b][/h1]
 
