@@ -15,20 +15,20 @@ Collection of cool features to empower your server:
 - 'Mutate' options available, printed by writing in console: mutate st help (or mutate servertools help) OR from the ESC-Menu
 - New 'ESC-MENU' tab for trader manipulation + revival options
 - Global notifications to improve user experience
-- User friendly customization
+- User-friendly customization
 
-[b]Credits[/b]
+[h1][b][u]Credits[/u][/b][/h1]
 
 - AdminMut
 - Trader Mut
 - ReloadOpt Mut
 - ServerPerks (Code Reference)
 - ScrN (Code Reference)
-- 2 Sirens 1 Cup
+- P-Jay for testing & feature proposals
 
 [h1][b][u]Whitelist status[/u][/b][/h1]
 
-- NO & don't ask for Whitelisting it. Do that by yourself (Yes, It can be whitelisted)
+- NO
 
 [h1][b][u]Notes[/u][/b][/h1]
 
@@ -127,4 +127,4 @@ Optional, if you have ServerPerks installed:
 
 [h1][b][u]Manual Download Links (Recommended)[/u][/b][/h1]
 
-- Github: https://github.com/Vel-San/KF-ServerTools/releases/tag/v1.5
+- Github: https://github.com/Vel-San/KF-ServerTools/releases/tag/v1.5.1

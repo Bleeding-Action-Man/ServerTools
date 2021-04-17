@@ -132,20 +132,23 @@ simulated function Tick(float DeltaTime)
   // Add Server Tools tab to ESC-Menu
   if (InjectMenu && !bInjected) InjectNewMenu();
 
-  if (!KFGT.bWaveInProgress && !KFGT.IsInState('PendingMatch') && !KFGT.IsInState('GameEnded') && ApplyTraderBoost)
+  if (Level.NetMode == NM_DedicatedServer || Level.NetMode == NM_ListenServer)
   {
-    if(!isBoostActive) GiveTraderBoost();
-  }
-  else
-  {
-    if(ApplyTraderBoost) isBoostActive = false;
+    if (!KFGT.bWaveInProgress && !KFGT.IsInState('PendingMatch') && !KFGT.IsInState('GameEnded') && ApplyTraderBoost)
+    {
+      if(!isBoostActive) GiveTraderBoost();
+    }
+    else
+    {
+      if(ApplyTraderBoost) isBoostActive = false;
 
-    // Disable timer just in case it wasn't disabled ?
-    Disable('Timer');
+      // Disable timer just in case it wasn't disabled ?
+      Disable('Timer');
 
-    // Reset the Votes array after trader is done
-    aPlayerIDs.length = 0;
-    IsTimerActive = false;
+      // Reset the Votes array after trader is done
+      aPlayerIDs.length = 0;
+      IsTimerActive = false;
+    }
   }
 }
 
@@ -803,7 +806,7 @@ defaultproperties
 {
   // Mandatory Vars
   GroupName = "KF-ServerTools"
-  FriendlyName = "Server Tools - v1.5"
+  FriendlyName = "Server Tools - v1.5.1"
   Description = "Collection of cool features to empower your server; Made by Vel-San"
   bAddToServerPackages = true
   RemoteRole = ROLE_SimulatedProxy
