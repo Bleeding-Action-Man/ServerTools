@@ -111,10 +111,6 @@ bDebug=True
 - \System\ServerTools.ucl
 - \System\ServerTools_Config.ini
 
-Optional, if you have ServerPerks installed:
-
-- \System\ServerPerks.u
-
 [h1][b][u]Usage[/u][/b][/h1]
 
 1- Subscribe or download manually (Recommended)

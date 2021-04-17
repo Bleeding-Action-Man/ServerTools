@@ -3,7 +3,6 @@
 class STInteraction extends Interaction;
 
 var GUI.GUITabItem ServerToolsPanel;
-var string ServerToolsPanelClass_SP;
 
 event NotifyLevelChange() {
   Master.RemoveInteraction(self);
@@ -21,9 +20,6 @@ function bool KeyEvent(EInputKey Key, EInputAction Action, float Delta ) {
   }
   escMenu= UT2K4PlayerLoginMenu(KFGUIController(ViewportOwner.GUIController).ActivePage);
   if (escMenu != none && escMenu.c_Main.TabIndex(ServerToolsPanel.caption) == -1) {
-    if (escMenu.IsA('SRInvasionLoginMenu')) {
-    ServerToolsPanel.ClassName = ServerToolsPanelClass_SP;
-    }
     panel= MidGamePanel(escMenu.c_Main.AddTabItem(ServerToolsPanel));
     if (panel != none) {
     panel.ModifiedChatRestriction= escMenu.UpdateChatRestriction;
@@ -34,6 +30,5 @@ function bool KeyEvent(EInputKey Key, EInputAction Action, float Delta ) {
 }
 
 defaultproperties {
-  ServerToolsPanelClass_SP="ServerTools.ST_Tab_SP"
   ServerToolsPanel=(ClassName="ServerTools.ST_Tab",Caption="Server Tools",Hint="Essential Trader Manipulation & Revival Options")
 }
