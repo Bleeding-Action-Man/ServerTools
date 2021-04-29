@@ -134,9 +134,12 @@ simulated function Tick(float DeltaTime)
 
   if (Level.NetMode == NM_DedicatedServer || Level.NetMode == NM_ListenServer)
   {
-    if (!KFGT.bWaveInProgress && !KFGT.IsInState('PendingMatch') && !KFGT.IsInState('GameEnded') && ApplyTraderBoost)
+    if (!KFGT.bWaveInProgress && !KFGT.IsInState('PendingMatch') && !KFGT.IsInState('GameEnded'))
     {
-      if(!isBoostActive) GiveTraderBoost();
+      if (ApplyTraderBoost)
+      {
+        if (!isBoostActive) GiveTraderBoost();
+      }
     }
     else
     {
@@ -806,8 +809,8 @@ defaultproperties
 {
   // Mandatory Vars
   GroupName = "KF-ServerTools"
-  FriendlyName = "Server Tools - v1.5.1"
-  Description = "Collection of cool features to empower your server; Made by Vel-San"
+  FriendlyName = "Server Tools - v1.5.2"
+  Description = "Collection of cool features to empower your server; Made by Vel-San.|Special thanks to P-Jay for testing!"
   bAddToServerPackages = true
   RemoteRole = ROLE_SimulatedProxy
   bAlwaysRelevant = true
